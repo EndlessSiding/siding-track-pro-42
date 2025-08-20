@@ -1,55 +1,46 @@
-name: Build and FTP deploy to Hostinger (with htaccess)
+name: Build and Deploy via FTP
 
 on:
   push:
-    branches: ["main"]
-  workflow_dispatch: {}
+    branches:
+      - deploy   # só roda quando fizer push na branch deploy
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Puxar o código do repositório
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # 2. Configurar Node.js
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '18'
 
-      # 3. Instalar dependências
       - name: Install dependencies
         run: npm install
 
-      # 4. Build do projeto (Vite)
-      - name: Build Vite project
+      - name: Build project
         run: npm run build
 
-      # 5. Criar .htaccess dentro da pasta dist/ para subdomínio
-      - name: Add .htaccess for subdomain SPA routes
+      - name: Create .htaccess
         run: |
-          cat << 'EOF' > dist/.htaccess
-          RewriteEngine On
-          RewriteBase /manager/
-          RewriteRule ^index\.html$ - [L]
-          RewriteCond %{REQUEST_FILENAME} !-f
-          RewriteCond %{REQUEST_FILENAME} !-d
-          RewriteRule . /manager/index.html [L]
-          EOF
+          echo "Options -Indexes" > ./dist/.htaccess
+          echo "DirectoryIndex index.html" >> ./dist/.htaccess
+          echo "RewriteEngine On" >> ./dist/.htaccess
+          echo "RewriteCond %{REQUEST_FILENAME} !-f" >> ./dist/.htaccess
+          echo "RewriteCond %{REQUEST_FILENAME} !-d" >> ./dist/.htaccess
+          echo "RewriteRule . /index.html [L]" >> ./dist/.htaccess
 
-      # 6. Deploy via FTP para a Hostinger
-      - name: Deploy to Hostinger via FTP
+      - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: 147.93.42.93
-          username: u887144620
-          password: ${{ secrets.FTP_PASSWORD }}
-          port: 21
-          protocol: ftps
-          security: loose
-          local-dir: dist/
-          server-dir: manager/
-          dangerous-clean-slate: true
+          server: ftp://147.93.42.93        # IP do seu FTP
+          username: u887144620              # usuário FTP
+          password: ${{ secrets.FTP_PASSWORD }} # senha guardada no GitHub Secrets
+          server-dir: public_html/manager/  # pasta exata do subdomínio
+          local-dir: ./dist                 # onde o build gera os arquivos
+          method: ftp
