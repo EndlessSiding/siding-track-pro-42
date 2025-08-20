@@ -1,46 +1,52 @@
-name: Build and Deploy via FTP
+name: Build and FTP deploy to Hostinger (main)
 
 on:
   push:
-    branches:
-      - deploy   # só roda quando fizer push na branch deploy
+    branches: ["main"]
+  workflow_dispatch: {}
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 18
 
       - name: Install dependencies
         run: npm install
 
-      - name: Build project
+      - name: Build Vite project
         run: npm run build
 
-      - name: Create .htaccess
+      # Cria .htaccess (SPA) e um version.txt para checagem no navegador
+      - name: Add htaccess and version stamp
         run: |
-          echo "Options -Indexes" > ./dist/.htaccess
-          echo "DirectoryIndex index.html" >> ./dist/.htaccess
-          echo "RewriteEngine On" >> ./dist/.htaccess
-          echo "RewriteCond %{REQUEST_FILENAME} !-f" >> ./dist/.htaccess
-          echo "RewriteCond %{REQUEST_FILENAME} !-d" >> ./dist/.htaccess
-          echo "RewriteRule . /index.html [L]" >> ./dist/.htaccess
+          cat << 'EOF' > dist/.htaccess
+          RewriteEngine On
+          RewriteBase /
+          RewriteRule ^index\.html$ - [L]
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule . /index.html [L]
+          EOF
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > dist/version.txt
 
-      - name: FTP Deploy
+      - name: Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ftp://147.93.42.93        # IP do seu FTP
-          username: u887144620              # usuário FTP
-          password: ${{ secrets.FTP_PASSWORD }} # senha guardada no GitHub Secrets
-          server-dir: public_html/manager/  # pasta exata do subdomínio
-          local-dir: ./dist                 # onde o build gera os arquivos
-          method: ftp
+          server: 147.93.42.93
+          username: u887144620
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
+          security: loose
+          local-dir: dist/
+          # Seu usuário FTP inicia em public_html, então publicamos só em "manager/"
+          server-dir: manager/
+          dangerous-clean-slate: true
