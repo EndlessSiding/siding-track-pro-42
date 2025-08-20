@@ -63,5 +63,5 @@ jobs:
           security: loose
           local-dir: dist/
           # seu usuário FTP "cai" dentro de public_html → então use apenas "manager/"
-          server-dir: manager/
+          server-dir: /home/u887144620/domains/endlesssiding.com/public_html/manager/
           dangerous-clean-slate: true
