@@ -9,7 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { FeaturesProvider } from "@/contexts/FeaturesContext";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { AppProvider } from "@/contexts/AppContext";
-import Layout from "@/components/layout/Layout";
+import { Layout } from "@/components/layout/Layout";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import ClientsPage from "./pages/clients/ClientsPage";
