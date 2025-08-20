@@ -2,8 +2,8 @@ name: Build and FTP deploy to Hostinger (manager)
 
 on:
   push:
-    branches: ["main"]
-  workflow_dispatch: {}
+    branches:
+      - main
 
 jobs:
   build-and-deploy:
@@ -11,74 +11,44 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: 18
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm install
 
-      - name: Build project
-        run: npm run build
-
-      # Descobre automaticamente onde ficou o build
-      - name: Detect build output dir
-        id: detect
-        shell: bash
+      - name: Build Vite project (force dist/)
         run: |
-          set -e
-          if [ -d dist ]; then
-            echo "DIR=dist/" >> $GITHUB_OUTPUT
-          elif [ -d build ]; then
-            echo "DIR=build/" >> $GITHUB_OUTPUT
-          elif [ -d public/build ]; then
-            echo "DIR=public/build/" >> $GITHUB_OUTPUT
-          else
-            echo "Nenhum diretório de build padrão encontrado (dist/, build/, public/build/)."
-            echo "Criando dist/ vazio apenas para subir htaccess/version.txt"
-            mkdir -p dist
-            echo "DIR=dist/" >> $GITHUB_OUTPUT
-          fi
-          echo "Diretório detectado:"
-          cat $GITHUB_OUTPUT
+          npm run build -- --outDir dist
+          echo "== Conteúdo da pasta dist =="
+          ls -la dist || true
 
-      # Garante .htaccess (SPA) + um marcador version.txt dentro do output
       - name: Add .htaccess and version.txt
-        shell: bash
         run: |
-          OUT="${{ steps.detect.outputs.DIR }}"
-          mkdir -p "$OUT"
-          cat > "${OUT}.htaccess" << 'EOF'
+          echo 'Options -Indexes
           RewriteEngine On
           RewriteBase /
           RewriteRule ^index\.html$ - [L]
           RewriteCond %{REQUEST_FILENAME} !-f
           RewriteCond %{REQUEST_FILENAME} !-d
-          RewriteRule . /index.html [L]
-          EOF
-          date -u +"%Y-%m-%dT%H:%M:%SZ" > "${OUT}version.txt"
+          RewriteRule . /index.html [L]' > dist/.htaccess
+          
+          echo "Build from GitHub Actions on $(date)" > dist/version.txt
 
-      # Lista o que vamos enviar (aparece no log)
       - name: Show output contents
-        shell: bash
-        run: |
-          OUT="${{ steps.detect.outputs.DIR }}"
-          echo "== Conteúdo de $OUT =="
-          ls -la "$OUT"
+        run: ls -la dist
 
-      # Faz upload para a pasta ABSOLUTA do seu subdomínio
       - name: FTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: 147.93.42.93
-          username: u887144620
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
           port: 21
-          protocol: ftps
-          security: loose
-          local-dir: ${{ steps.detect.outputs.DIR }}
-          server-dir: /home/u887144620/domains/endlesssiding.com/public_html/manager/
-          dangerous-clean-slate: true
+          local-dir: dist/
+          server-dir: public_html/manager/
