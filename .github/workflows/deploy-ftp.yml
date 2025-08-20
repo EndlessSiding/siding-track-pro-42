@@ -1,54 +1,38 @@
-name: Build and FTP deploy to Hostinger (manager)
+name: Build and FTP deploy to saas.draccusagency.com
 
 on:
   push:
     branches:
-      - main
+      - main  # dispara o deploy sempre que houver push na branch main
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v3
 
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: '18'
 
       - name: Install dependencies
         run: npm install
 
-      - name: Build Vite project (force dist/)
-        run: |
-          npm run build -- --outDir dist
-          echo "== Conteúdo da pasta dist =="
-          ls -la dist || true
+      - name: Build (Vite)
+        run: npm run build
 
-      - name: Add .htaccess and version.txt
-        run: |
-          echo 'Options -Indexes
-          RewriteEngine On
-          RewriteBase /
-          RewriteRule ^index\.html$ - [L]
-          RewriteCond %{REQUEST_FILENAME} !-f
-          RewriteCond %{REQUEST_FILENAME} !-d
-          RewriteRule . /index.html [L]' > dist/.htaccess
-          
-          echo "Build from GitHub Actions on $(date)" > dist/version.txt
-
-      - name: Show output contents
-        run: ls -la dist
-
-      - name: FTP Deploy
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      - name: FTP Deploy (FTPS)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
+          server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
           port: 21
+          protocol: ftps
+          security: loose
           local-dir: dist/
-          server-dir: public_html/manager/
+          server-dir: manager/         # seu FTP já inicia em public_html, então basta 'saas/'
+          dangerous-clean-slate: true
