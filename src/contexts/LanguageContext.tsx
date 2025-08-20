@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 type Language = 'pt' | 'en';
@@ -42,6 +41,27 @@ const translations = {
     'common.phone': 'Telefone',
     'common.address': 'Endereço',
     'common.notes': 'Observações',
+    'common.client': 'Cliente',
+    'common.optional': 'Opcional',
+    'common.saveChanges': 'Salvar Alterações',
+
+    // Projects
+    'projects.newProject': 'Novo Projeto',
+    'projects.editProject': 'Editar Projeto',
+    'projects.createProject': 'Criar Projeto',
+    'projects.createProjectDesc': 'Crie um novo projeto de revestimento. Clique em salvar quando terminar.',
+    'projects.editProjectDesc': 'Edite as informações do projeto.',
+    'projects.projectName': 'Nome do Projeto',
+    'projects.selectClient': 'Selecione um cliente',
+    'projects.budget': 'Orçamento',
+    'projects.dueDate': 'Data de Entrega',
+    'projects.selectStatus': 'Selecione o status',
+    'projects.description': 'Descrição',
+    'projects.descriptionPlaceholder': 'Detalhes adicionais do projeto...',
+    'projects.status.planning': 'Planejamento',
+    'projects.status.inProgress': 'Em Andamento',
+    'projects.status.completed': 'Concluído',
+    'projects.status.onHold': 'Pausado',
 
     // Clients
     'clients.title': 'Clientes',
@@ -190,6 +210,27 @@ const translations = {
     'common.phone': 'Phone',
     'common.address': 'Address',
     'common.notes': 'Notes',
+    'common.client': 'Client',
+    'common.optional': 'Optional',
+    'common.saveChanges': 'Save Changes',
+
+    // Projects
+    'projects.newProject': 'New Project',
+    'projects.editProject': 'Edit Project',
+    'projects.createProject': 'Create Project',
+    'projects.createProjectDesc': 'Create a new siding project. Click save when finished.',
+    'projects.editProjectDesc': 'Edit the project information.',
+    'projects.projectName': 'Project Name',
+    'projects.selectClient': 'Select a client',
+    'projects.budget': 'Budget',
+    'projects.dueDate': 'Due Date',
+    'projects.selectStatus': 'Select status',
+    'projects.description': 'Description',
+    'projects.descriptionPlaceholder': 'Additional project details...',
+    'projects.status.planning': 'Planning',
+    'projects.status.inProgress': 'In Progress',
+    'projects.status.completed': 'Completed',
+    'projects.status.onHold': 'On Hold',
 
     // Clients
     'clients.title': 'Clients',

@@ -120,7 +120,7 @@ export function ClientForm({
             id="name"
             value={formData.name}
             onChange={(e) => handleChange("name", e.target.value)}
-            placeholder={t('common.name')}
+            placeholder="John Smith"
             required
           />
         </div>
@@ -132,7 +132,7 @@ export function ClientForm({
             type="email"
             value={formData.email}
             onChange={(e) => handleChange("email", e.target.value)}
-            placeholder="email@exemplo.com"
+            placeholder="john@example.com"
             required
           />
         </div>
@@ -145,7 +145,7 @@ export function ClientForm({
             id="phone"
             value={formData.phone}
             onChange={(e) => handleChange("phone", e.target.value)}
-            placeholder="(11) 99999-9999"
+            placeholder="(555) 123-4567"
           />
         </div>
         
@@ -155,7 +155,7 @@ export function ClientForm({
             id="company"
             value={formData.company}
             onChange={(e) => handleChange("company", e.target.value)}
-            placeholder={t('clients.company')}
+            placeholder="ABC Construction"
           />
         </div>
       </div>
@@ -166,7 +166,7 @@ export function ClientForm({
           id="address"
           value={formData.address}
           onChange={(e) => handleChange("address", e.target.value)}
-          placeholder={t('common.address')}
+          placeholder="123 Main St, City, State 12345"
         />
       </div>
 

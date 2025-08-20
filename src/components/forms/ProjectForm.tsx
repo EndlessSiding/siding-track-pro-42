@@ -18,10 +18,10 @@ import {
   DialogHeader,
   DialogTitle,
   Dialog,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Project } from "@/types/project";
 import { useApp } from "@/contexts/AppContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ClientForm } from "@/components/forms/ClientForm";
 import { Plus } from "lucide-react";
 
@@ -33,6 +33,7 @@ interface ProjectFormProps {
 
 export default function ProjectForm({ onSubmit, onCancel, project }: ProjectFormProps) {
   const { clients, addClient } = useApp();
+  const { t } = useLanguage();
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -75,13 +76,13 @@ export default function ProjectForm({ onSubmit, onCancel, project }: ProjectForm
   };
 
   const handleCreateClient = (clientData: any) => {
-    addClient(clientData);
+    const newClient = addClient(clientData);
     setIsClientDialogOpen(false);
-    // Auto-select the new client (it will be added to the list)
+    // Auto-select the new client
     setTimeout(() => {
-      const newClient = clients[0]; // New clients are added to the beginning
-      if (newClient) {
-        setFormData({ ...formData, clientId: newClient.id, client: newClient.name });
+      const latestClient = clients.find(c => c.name === clientData.name);
+      if (latestClient) {
+        setFormData({ ...formData, clientId: latestClient.id, client: latestClient.name });
       }
     }, 100);
   };
@@ -101,133 +102,137 @@ export default function ProjectForm({ onSubmit, onCancel, project }: ProjectForm
   };
 
   return (
-    <DialogContent className="sm:max-w-[425px]">
-      <DialogHeader>
-        <DialogTitle>{project ? "Editar Projeto" : "Novo Projeto"}</DialogTitle>
-        <DialogDescription>
-          {project ? "Edite as informações do projeto." : "Crie um novo projeto de revestimento. Clique em salvar quando terminar."}
-        </DialogDescription>
-      </DialogHeader>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Nome do Projeto</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Ex: Casa da Silva - Siding"
-            required
-          />
-        </div>
+    <>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>{project ? t('projects.editProject') : t('projects.newProject')}</DialogTitle>
+          <DialogDescription>
+            {project ? t('projects.editProjectDesc') : t('projects.createProjectDesc')}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">{t('projects.projectName')}</Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Ex: Smith House - Siding"
+              required
+            />
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="client">Cliente</Label>
-          <Select
-            value={formData.clientId}
-            onValueChange={handleClientChange}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione um cliente" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="new" className="text-blue-600 font-medium">
-                <div className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Novo Cliente
-                </div>
-              </SelectItem>
-              {clients.map((client) => (
-                <SelectItem key={client.id} value={client.id}>
-                  {client.name}
+          <div className="space-y-2">
+            <Label htmlFor="client">{t('common.client')}</Label>
+            <Select
+              value={formData.clientId}
+              onValueChange={handleClientChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t('projects.selectClient')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="new" className="text-blue-600 font-medium">
+                  <div className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    {t('clients.newClient')}
+                  </div>
                 </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+                {clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="address">Endereço</Label>
-          <Input
-            id="address"
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            placeholder="Endereço completo"
-            required
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="budget">Orçamento ($)</Label>
+            <Label htmlFor="address">{t('common.address')}</Label>
             <Input
-              id="budget"
-              type="number"
-              value={formData.budget}
-              onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-              placeholder="15000"
+              id="address"
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              placeholder="123 Main St, City, State 12345"
               required
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="budget">{t('projects.budget')} ($)</Label>
+              <Input
+                id="budget"
+                type="number"
+                value={formData.budget}
+                onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                placeholder="15000"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dueDate">{t('projects.dueDate')}</Label>
+              <Input
+                id="dueDate"
+                type="date"
+                value={formData.dueDate}
+                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="dueDate">Data de Entrega</Label>
-            <Input
-              id="dueDate"
-              type="date"
-              value={formData.dueDate}
-              onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-              required
+            <Label htmlFor="status">{t('common.status')}</Label>
+            <Select
+              value={formData.status}
+              onValueChange={(value: "planning" | "in-progress" | "completed" | "on-hold") => 
+                setFormData({ ...formData, status: value })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t('projects.selectStatus')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="planning">{t('projects.status.planning')}</SelectItem>
+                <SelectItem value="in-progress">{t('projects.status.inProgress')}</SelectItem>
+                <SelectItem value="completed">{t('projects.status.completed')}</SelectItem>
+                <SelectItem value="on-hold">{t('projects.status.onHold')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">{t('projects.description')} ({t('common.optional')})</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder={t('projects.descriptionPlaceholder')}
+              rows={3}
             />
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="status">Status</Label>
-          <Select
-            value={formData.status}
-            onValueChange={(value: "planning" | "in-progress" | "completed" | "on-hold") => 
-              setFormData({ ...formData, status: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="planning">Planejamento</SelectItem>
-              <SelectItem value="in-progress">Em Andamento</SelectItem>
-              <SelectItem value="completed">Concluído</SelectItem>
-              <SelectItem value="on-hold">Pausado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Descrição (Opcional)</Label>
-          <Textarea
-            id="description"
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            placeholder="Detalhes adicionais do projeto..."
-            rows={3}
-          />
-        </div>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
-          </Button>
-          <Button type="submit">{project ? "Salvar Alterações" : "Criar Projeto"}</Button>
-        </DialogFooter>
-      </form>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onCancel}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit">{project ? t('common.saveChanges') : t('projects.createProject')}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
 
       {/* Dialog para criar novo cliente */}
-      <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
-        <ClientForm
-          onSubmit={handleCreateClient}
-          onCancel={() => setIsClientDialogOpen(false)}
-        />
-      </Dialog>
-    </DialogContent>
+      {isClientDialogOpen && (
+        <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
+          <ClientForm
+            onSubmit={handleCreateClient}
+            onCancel={() => setIsClientDialogOpen(false)}
+          />
+        </Dialog>
+      )}
+    </>
   );
 }
