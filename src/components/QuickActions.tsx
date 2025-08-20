@@ -12,7 +12,7 @@ export default function QuickActions() {
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
   const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
-  const { addProject, addClient } = useApp();
+  const { addProject, addClient, addQuote } = useApp();
 
   const handleCreateProject = (projectData: any) => {
     addProject(projectData);
@@ -25,7 +25,7 @@ export default function QuickActions() {
   };
 
   const handleCreateQuote = (quoteData: any) => {
-    console.log("Novo orçamento:", quoteData);
+    addQuote(quoteData);
     setIsQuoteDialogOpen(false);
   };
 
