@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Client } from "@/types/client";
 import { Project } from "@/types/project";
 import { Quote } from "@/types/financial";
+import { normalizeTableData, type TableName } from "@/utils/backupNormalizer";
 
 interface BackupData {
   version: string;
@@ -198,50 +198,21 @@ export const useBackup = () => {
   };
 
   const processDataForInsert = (data: any[], tableName: string) => {
-    return data.map(item => {
-      const processedItem = { ...item };
-      
-      // Remove campos que podem causar conflito
-      delete processedItem.created_at;
-      delete processedItem.updated_at;
-      
-      // Gera novo UUID se necessário
-      if (!processedItem.id) {
-        processedItem.id = crypto.randomUUID();
+    const normalized = normalizeTableData(data, tableName as TableName).map((item) => {
+      const processed = { ...item };
+      // Remover campos que podem conflitar com defaults do banco
+      delete (processed as any).created_at;
+      delete (processed as any).updated_at;
+
+      // Garantir um ID quando aplicável
+      if (!processed.id) {
+        (processed as any).id = crypto.randomUUID();
       }
-      
-      // Validações específicas por tabela
-      if (tableName === 'clients') {
-        processedItem.status = processedItem.status || 'active';
-        processedItem.preferred_contact = processedItem.preferred_contact || 'email';
-        processedItem.total_projects_value = processedItem.total_projects_value || 0;
-      }
-      
-      if (tableName === 'projects') {
-        processedItem.status = processedItem.status || 'planning';
-        processedItem.progress = processedItem.progress || 0;
-        processedItem.spent = processedItem.spent || 0;
-        processedItem.budget = processedItem.budget || 0;
-        processedItem.team = processedItem.team || [];
-      }
-      
-      if (tableName === 'quotes') {
-        processedItem.status = processedItem.status || 'draft';
-        processedItem.total_amount = processedItem.total_amount || 0;
-        processedItem.items = processedItem.items || [];
-      }
-      
-      if (tableName === 'teams') {
-        processedItem.availability = processedItem.availability || 'available';
-        processedItem.specialties = processedItem.specialties || [];
-        processedItem.members = processedItem.members || [];
-        processedItem.safety = processedItem.safety || 0;
-        processedItem.quality = processedItem.quality || 0;
-        processedItem.efficiency = processedItem.efficiency || 0;
-      }
-      
-      return processedItem;
+
+      return processed;
     });
+
+    return normalized;
   };
 
   const restoreBackup = async (backupId: string): Promise<void> => {
@@ -266,53 +237,58 @@ export const useBackup = () => {
       }
 
       const backupData = backup.backup_data;
+      const insertedCounts: Record<string, number> = {};
 
-      // Restaurar dados baseado nas tabelas incluídas
       for (const tableName of backup.included_tables) {
         console.log(`Restaurando tabela: ${tableName}`);
-        
         try {
-          // Limpar dados existentes
+          // Limpar todos os dados da tabela
           const { error: deleteError } = await supabase
             .from(tableName)
             .delete()
-            .neq('id', '00000000-0000-0000-0000-000000000000');
-          
+            .not('id', 'is', null); // apaga todas as linhas
+
           if (deleteError) {
             console.error(`Erro ao limpar ${tableName}:`, deleteError);
           }
 
-          // Inserir novos dados se existirem
           const tableData = backupData.data[tableName as keyof typeof backupData.data];
           if (tableData && Array.isArray(tableData) && tableData.length > 0) {
             const processedData = processDataForInsert(tableData, tableName);
-            
+
             console.log(`Inserindo ${processedData.length} registros em ${tableName}`);
-            
             const { error: insertError } = await supabase
               .from(tableName)
               .insert(processedData);
-            
+
             if (insertError) {
               console.error(`Erro ao inserir em ${tableName}:`, insertError);
               throw insertError;
             }
+
+            const { count } = await supabase
+              .from(tableName)
+              .select('*', { count: 'exact', head: true });
+
+            insertedCounts[tableName] = count ?? 0;
+            console.log(`Tabela ${tableName} agora possui ${insertedCounts[tableName]} registros`);
+          } else {
+            insertedCounts[tableName] = 0;
+            console.log(`Nenhum dado encontrado para ${tableName} no backup`);
           }
         } catch (tableError) {
           console.error(`Erro ao processar tabela ${tableName}:`, tableError);
-          // Continua com as outras tabelas
         }
       }
 
-      // Tratar configurações da empresa separadamente
       if (backup.included_tables.includes('company_settings') && backupData.data.companySettings) {
         try {
-          await supabase.from('company_settings').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-          
+          await supabase.from('company_settings').delete().not('id', 'is', null);
+
           const settingsData = { ...backupData.data.companySettings };
-          delete settingsData.created_at;
-          delete settingsData.updated_at;
-          
+          delete (settingsData as any).created_at;
+          delete (settingsData as any).updated_at;
+
           const { error } = await supabase.from('company_settings').insert(settingsData);
           if (error) throw error;
         } catch (settingsError) {
@@ -322,10 +298,9 @@ export const useBackup = () => {
 
       toast({
         title: "Backup restaurado com sucesso",
-        description: "Todos os dados foram restaurados do backup",
+        description: "Os dados foram restaurados. Recarregando a aplicação...",
       });
 
-      // Recarregar a página para atualizar todos os dados
       setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       console.error('Erro ao restaurar backup:', error);
@@ -344,17 +319,15 @@ export const useBackup = () => {
       setIsImporting(true);
       
       const fileContent = await file.text();
-      const backupData: BackupData = JSON.parse(fileContent);
+      const backupData = JSON.parse(fileContent) as any;
       
-      // Validar estrutura do backup
-      if (!backupData.version || !backupData.data) {
+      if (!backupData?.version || !backupData?.data) {
         throw new Error('Arquivo de backup inválido - estrutura incorreta');
       }
 
-      // Confirmar antes de importar
       const confirmImport = window.confirm(
         `Tem certeza que deseja importar este backup?\n\n` +
-        `Data do backup: ${new Date(backupData.timestamp).toLocaleString()}\n` +
+        `Data do backup: ${new Date(backupData.timestamp || Date.now()).toLocaleString()}\n` +
         `Versão: ${backupData.version}\n\n` +
         `ATENÇÃO: Isso irá substituir todos os dados atuais!`
       );
@@ -364,59 +337,65 @@ export const useBackup = () => {
         return;
       }
 
-      // Determinar quais tabelas importar baseado nos dados disponíveis
-      const tablesToImport = [];
+      const tablesToImport: TableName[] = [];
       if (backupData.data.clients) tablesToImport.push('clients');
       if (backupData.data.projects) tablesToImport.push('projects');
       if (backupData.data.teams) tablesToImport.push('teams');
       if (backupData.data.quotes) tablesToImport.push('quotes');
 
-      // Importar dados das tabelas
+      const insertedCounts: Record<string, number> = {};
+
       for (const tableName of tablesToImport) {
         try {
           console.log(`Importando tabela: ${tableName}`);
-          
-          // Limpar dados existentes
+
+          // Limpar todos os dados da tabela
           const { error: deleteError } = await supabase
             .from(tableName)
             .delete()
-            .neq('id', '00000000-0000-0000-0000-000000000000');
-          
+            .not('id', 'is', null);
+
           if (deleteError) {
             console.error(`Erro ao limpar ${tableName}:`, deleteError);
           }
 
-          // Inserir novos dados
-          const tableData = backupData.data[tableName as keyof typeof backupData.data];
+          const tableData = backupData.data[tableName];
           if (tableData && Array.isArray(tableData) && tableData.length > 0) {
             const processedData = processDataForInsert(tableData, tableName);
-            
+
             console.log(`Inserindo ${processedData.length} registros em ${tableName}`);
-            
             const { error: insertError } = await supabase
               .from(tableName)
               .insert(processedData);
-            
+
             if (insertError) {
               console.error(`Erro ao inserir em ${tableName}:`, insertError);
               throw insertError;
             }
+
+            const { count } = await supabase
+              .from(tableName)
+              .select('*', { count: 'exact', head: true });
+
+            insertedCounts[tableName] = count ?? 0;
+            console.log(`Tabela ${tableName} agora possui ${insertedCounts[tableName]} registros`);
+          } else {
+            insertedCounts[tableName] = 0;
+            console.log(`Nenhum dado para inserir em ${tableName}`);
           }
         } catch (tableError) {
           console.error(`Erro ao processar tabela ${tableName}:`, tableError);
-          // Continua com as outras tabelas
         }
       }
 
-      // Importar configurações da empresa se existirem
       if (backupData.data.companySettings) {
         try {
-          await supabase.from('company_settings').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-          
+          await supabase.from('company_settings').delete().not('id', 'is', null);
+
           const settingsData = { ...backupData.data.companySettings };
-          delete settingsData.created_at;
-          delete settingsData.updated_at;
-          
+          delete (settingsData as any).created_at;
+          delete (settingsData as any).updated_at;
+
           const { error } = await supabase.from('company_settings').insert(settingsData);
           if (error) throw error;
         } catch (settingsError) {
@@ -426,10 +405,9 @@ export const useBackup = () => {
 
       toast({
         title: "Backup importado com sucesso",
-        description: "Todos os dados foram restaurados do backup",
+        description: "Os dados foram restaurados. Recarregando a aplicação...",
       });
 
-      // Recarregar a página para atualizar todos os dados
       setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       console.error('Erro ao importar backup:', error);
