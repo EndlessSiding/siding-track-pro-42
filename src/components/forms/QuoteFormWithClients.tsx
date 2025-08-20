@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,20 +33,31 @@ export function QuoteFormWithClients({ onSubmit, onCancel }: QuoteFormWithClient
   const { clients, addClient } = useApp();
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    clientId: string;
+    projectName: string;
+    validUntil: string;
+    status: "draft" | "sent" | "approved" | "rejected" | "expired";
+    notes: string;
+  }>({
     clientId: "",
     projectName: "",
     validUntil: "",
-    status: "draft" as const,
+    status: "draft",
     notes: ""
   });
 
   const [items, setItems] = useState<QuoteItem[]>([]);
-  const [newItem, setNewItem] = useState({
+  const [newItem, setNewItem] = useState<{
+    description: string;
+    quantity: string;
+    unitPrice: string;
+    category: "materials" | "labor" | "equipment";
+  }>({
     description: "",
     quantity: "",
     unitPrice: "",
-    category: "materials" as const
+    category: "materials"
   });
 
   const addItem = () => {
