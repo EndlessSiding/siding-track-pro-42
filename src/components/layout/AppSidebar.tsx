@@ -86,17 +86,17 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
-        <div className="p-4 border-b">
+        <div className="p-6 border-b">
           <div className="flex items-center justify-center">
             {hasLogo ? (
               <img 
                 src={currentLogo} 
                 alt="Logo" 
-                className="h-12 w-12 object-contain"
+                className="h-16 w-auto max-w-[120px] object-contain"
               />
             ) : (
-              <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Home className="h-6 w-6 text-primary" />
+              <div className="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Home className="h-8 w-8 text-primary" />
               </div>
             )}
           </div>

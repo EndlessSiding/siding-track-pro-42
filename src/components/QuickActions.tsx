@@ -39,10 +39,12 @@ export default function QuickActions() {
             Novo Projeto
           </Button>
         </DialogTrigger>
-        <ProjectForm
-          onSubmit={handleCreateProject}
-          onCancel={() => setIsProjectDialogOpen(false)}
-        />
+        {isProjectDialogOpen && (
+          <ProjectForm
+            onSubmit={handleCreateProject}
+            onCancel={() => setIsProjectDialogOpen(false)}
+          />
+        )}
       </Dialog>
 
       {/* Novo Cliente */}
@@ -53,10 +55,12 @@ export default function QuickActions() {
             Novo Cliente
           </Button>
         </DialogTrigger>
-        <ClientForm
-          onSubmit={handleCreateClient}
-          onCancel={() => setIsClientDialogOpen(false)}
-        />
+        {isClientDialogOpen && (
+          <ClientForm
+            onSubmit={handleCreateClient}
+            onCancel={() => setIsClientDialogOpen(false)}
+          />
+        )}
       </Dialog>
 
       {/* Novo Orçamento */}
@@ -67,10 +71,12 @@ export default function QuickActions() {
             Novo Orçamento
           </Button>
         </DialogTrigger>
-        <QuoteForm
-          onSubmit={handleCreateQuote}
-          onCancel={() => setIsQuoteDialogOpen(false)}
-        />
+        {isQuoteDialogOpen && (
+          <QuoteForm
+            onSubmit={handleCreateQuote}
+            onCancel={() => setIsQuoteDialogOpen(false)}
+          />
+        )}
       </Dialog>
     </div>
   );
