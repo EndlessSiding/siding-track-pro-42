@@ -188,8 +188,8 @@ export function QuoteFormWithClients({ onSubmit, onCancel }: QuoteFormWithClient
             <Label htmlFor="status">Status</Label>
             <Select
               value={formData.status}
-              onValueChange={(value: "draft" | "sent" | "approved" | "rejected" | "expired") => 
-                setFormData({ ...formData, status: value })
+              onValueChange={(value) => 
+                setFormData({ ...formData, status: value as "draft" | "sent" | "approved" | "rejected" | "expired" })
               }
             >
               <SelectTrigger>
@@ -231,8 +231,8 @@ export function QuoteFormWithClients({ onSubmit, onCancel }: QuoteFormWithClient
               />
               <Select
                 value={newItem.category}
-                onValueChange={(value: "materials" | "labor" | "equipment") => 
-                  setNewItem({ ...newItem, category: value })
+                onValueChange={(value) => 
+                  setNewItem({ ...newItem, category: value as "materials" | "labor" | "equipment" })
                 }
               >
                 <SelectTrigger>
