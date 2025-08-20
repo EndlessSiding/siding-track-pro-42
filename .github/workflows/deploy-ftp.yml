@@ -30,11 +30,11 @@ jobs:
         run: |
           cat << 'EOF' > dist/.htaccess
           RewriteEngine On
-          RewriteBase /
+          RewriteBase /manager/
           RewriteRule ^index\.html$ - [L]
           RewriteCond %{REQUEST_FILENAME} !-f
           RewriteCond %{REQUEST_FILENAME} !-d
-          RewriteRule . /index.html [L]
+          RewriteRule . /manager/index.html [L]
           EOF
 
       # ---- upload dist/ (including .htaccess) to your FTP folder ----
