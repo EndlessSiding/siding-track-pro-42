@@ -53,6 +53,3 @@ jobs:
           local-dir: dist/
           server-dir: manager/
           dangerous-clean-slate: true
-
-- name: List dist folder
-  run: ls -R dist || echo "dist directory not found"
