@@ -7,14 +7,19 @@ export function useLogo() {
   const { settings } = useSettings();
 
   const getCurrentLogo = () => {
+    // Verificar se settings existe e não é null
+    if (!settings) {
+      return '';
+    }
+    
     if (theme === 'dark' && settings.darkLogo) {
       return settings.darkLogo;
     }
-    return settings.logo;
+    return settings.logo || '';
   };
 
   return {
     currentLogo: getCurrentLogo(),
-    hasLogo: !!(theme === 'dark' ? settings.darkLogo || settings.logo : settings.logo)
+    hasLogo: !!(settings && (theme === 'dark' ? settings.darkLogo || settings.logo : settings.logo))
   };
 }

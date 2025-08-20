@@ -1,5 +1,6 @@
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
+import { useCompanySettings } from '@/hooks/useCompanySettings';
 
 interface CompanySettings {
   name: string;
@@ -14,6 +15,7 @@ interface CompanySettings {
 interface SettingsContextType {
   settings: CompanySettings;
   updateSettings: (settings: Partial<CompanySettings>) => void;
+  isLoading: boolean;
 }
 
 const defaultSettings: CompanySettings = {
@@ -29,14 +31,40 @@ const defaultSettings: CompanySettings = {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<CompanySettings>(defaultSettings);
+  const { data: companySettings, updateCompanySettings, isLoading } = useCompanySettings();
+
+  // Garantir que sempre temos um objeto de settings válido
+  const settings = companySettings ? {
+    name: companySettings.name || defaultSettings.name,
+    logo: companySettings.logo || '',
+    darkLogo: companySettings.dark_logo || '',
+    cnpj: companySettings.cnpj || '',
+    phone: companySettings.phone || '',
+    email: companySettings.email || '',
+    address: companySettings.address || ''
+  } : defaultSettings;
 
   const updateSettings = (newSettings: Partial<CompanySettings>) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
+    const mappedSettings = {
+      name: newSettings.name,
+      logo: newSettings.logo,
+      dark_logo: newSettings.darkLogo,
+      cnpj: newSettings.cnpj,
+      phone: newSettings.phone,
+      email: newSettings.email,
+      address: newSettings.address
+    };
+    
+    // Remove propriedades undefined
+    const filteredSettings = Object.fromEntries(
+      Object.entries(mappedSettings).filter(([_, value]) => value !== undefined)
+    );
+    
+    updateCompanySettings(filteredSettings);
   };
 
   return (
-    <SettingsContext.Provider value={{ settings, updateSettings }}>
+    <SettingsContext.Provider value={{ settings, updateSettings, isLoading }}>
       {children}
     </SettingsContext.Provider>
   );
