@@ -1,0 +1,38 @@
+name: Build and FTP deploy to saas.draccusagency.com
+
+on:
+  push:
+    branches:
+      - main  # dispara o deploy sempre que houver push na branch main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build (Vite)
+        run: npm run build
+
+      - name: FTP Deploy (FTPS)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
+          security: loose
+          local-dir: dist/
+          server-dir: saas/         # seu FTP já inicia em public_html, então basta 'saas/'
+          dangerous-clean-slate: true
