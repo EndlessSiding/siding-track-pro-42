@@ -1,4 +1,4 @@
-name: Build and FTP deploy to Hostinger (main)
+name: Build and FTP deploy to Hostinger (manager)
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Setup Node
@@ -19,15 +19,39 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci || npm install
 
-      - name: Build Vite project
+      - name: Build project
         run: npm run build
 
-      # Cria .htaccess (SPA) e um version.txt para checagem no navegador
-      - name: Add htaccess and version stamp
+      # Descobre automaticamente onde ficou o build
+      - name: Detect build output dir
+        id: detect
+        shell: bash
         run: |
-          cat << 'EOF' > dist/.htaccess
+          set -e
+          if [ -d dist ]; then
+            echo "DIR=dist/" >> $GITHUB_OUTPUT
+          elif [ -d build ]; then
+            echo "DIR=build/" >> $GITHUB_OUTPUT
+          elif [ -d public/build ]; then
+            echo "DIR=public/build/" >> $GITHUB_OUTPUT
+          else
+            echo "Nenhum diretório de build padrão encontrado (dist/, build/, public/build/)."
+            echo "Criando dist/ vazio apenas para subir htaccess/version.txt"
+            mkdir -p dist
+            echo "DIR=dist/" >> $GITHUB_OUTPUT
+          fi
+          echo "Diretório detectado:"
+          cat $GITHUB_OUTPUT
+
+      # Garante .htaccess (SPA) + um marcador version.txt dentro do output
+      - name: Add .htaccess and version.txt
+        shell: bash
+        run: |
+          OUT="${{ steps.detect.outputs.DIR }}"
+          mkdir -p "$OUT"
+          cat > "${OUT}.htaccess" << 'EOF'
           RewriteEngine On
           RewriteBase /
           RewriteRule ^index\.html$ - [L]
@@ -35,9 +59,18 @@ jobs:
           RewriteCond %{REQUEST_FILENAME} !-d
           RewriteRule . /index.html [L]
           EOF
-          date -u +"%Y-%m-%dT%H:%M:%SZ" > dist/version.txt
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > "${OUT}version.txt"
 
-      - name: Deploy to Hostinger via FTP
+      # Lista o que vamos enviar (aparece no log)
+      - name: Show output contents
+        shell: bash
+        run: |
+          OUT="${{ steps.detect.outputs.DIR }}"
+          echo "== Conteúdo de $OUT =="
+          ls -la "$OUT"
+
+      # Faz upload para a pasta ABSOLUTA do seu subdomínio
+      - name: FTP Deploy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: 147.93.42.93
@@ -46,7 +79,6 @@ jobs:
           port: 21
           protocol: ftps
           security: loose
-          local-dir: dist/
-          # Seu usuário FTP inicia em public_html, então publicamos só em "manager/"
-          server-dir: manager/
+          local-dir: ${{ steps.detect.outputs.DIR }}
+          server-dir: /home/u887144620/domains/endlesssiding.com/public_html/manager/
           dangerous-clean-slate: true
