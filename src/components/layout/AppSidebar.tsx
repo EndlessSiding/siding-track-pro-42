@@ -92,11 +92,11 @@ export function AppSidebar() {
               <img 
                 src={currentLogo} 
                 alt="Logo" 
-                className="h-8 w-8 object-contain"
+                className="h-12 w-12 object-contain"
               />
             ) : (
-              <div className="h-8 w-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Home className="h-4 w-4 text-primary" />
+              <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Home className="h-6 w-6 text-primary" />
               </div>
             )}
           </div>

@@ -34,8 +34,9 @@ export default function QuickActions() {
       {/* Novo Projeto */}
       <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="icon" className="h-10 w-10">
+          <Button variant="outline" size="sm" className="gap-2">
             <Building2 className="h-4 w-4" />
+            Novo Projeto
           </Button>
         </DialogTrigger>
         <ProjectForm
@@ -47,8 +48,9 @@ export default function QuickActions() {
       {/* Novo Cliente */}
       <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="icon" className="h-10 w-10">
+          <Button variant="outline" size="sm" className="gap-2">
             <Users className="h-4 w-4" />
+            Novo Cliente
           </Button>
         </DialogTrigger>
         <ClientForm
@@ -60,8 +62,9 @@ export default function QuickActions() {
       {/* Novo Orçamento */}
       <Dialog open={isQuoteDialogOpen} onOpenChange={setIsQuoteDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="icon" className="h-10 w-10">
+          <Button variant="outline" size="sm" className="gap-2">
             <FileText className="h-4 w-4" />
+            Novo Orçamento
           </Button>
         </DialogTrigger>
         <QuoteForm
