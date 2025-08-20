@@ -1,15 +1,18 @@
-import { NavLink, useLocation } from "react-router-dom";
+
 import {
-  Building2,
+  Calendar,
+  Home,
+  Inbox,
+  Search,
+  Settings,
   Users,
+  FolderOpen,
   DollarSign,
   BarChart3,
-  Settings,
-  Home,
-  UserCog,
   MapPin,
-  Calculator
-} from "lucide-react";
+  UserCheck,
+  Database,
+} from "lucide-react"
 
 import {
   Sidebar,
@@ -20,108 +23,92 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarHeader,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import { useFeatures } from "@/contexts/FeaturesContext";
-import { useSettings } from "@/contexts/SettingsContext";
-import { useLanguage } from "@/contexts/LanguageContext";
-import { useLogo } from "@/hooks/useLogo";
+} from "@/components/ui/sidebar"
+import { useSettings } from "@/contexts/SettingsContext"
 
-const navigationItems = [
-  { title: "nav.dashboard", url: "/", icon: Home, featureId: null },
-  { title: "nav.projects", url: "/projects", icon: Building2, featureId: "projects" },
-  { title: "nav.clients", url: "/clients", icon: Users, featureId: "clients" },
-  { title: "nav.teams", url: "/teams", icon: UserCog, featureId: "teams" },
-  { title: "nav.quotes", url: "/quotes", icon: Calculator, featureId: "quotes" },
-  { title: "nav.financial", url: "/financial", icon: DollarSign, featureId: "financial" },
-  { title: "nav.reports", url: "/reports", icon: BarChart3, featureId: "reports" },
-  { title: "nav.map", url: "/map", icon: MapPin, featureId: "map" },
-];
-
-const secondaryItems = [
-  { title: "nav.settings", url: "/settings", icon: Settings, featureId: null },
-];
+// Menu items.
+const items = [
+  {
+    title: "Dashboard",
+    url: "/",
+    icon: Home,
+  },
+  {
+    title: "Clientes",
+    url: "/clients",
+    icon: Users,
+  },
+  {
+    title: "Projetos",
+    url: "/projects",
+    icon: FolderOpen,
+  },
+  {
+    title: "Equipes",
+    url: "/teams",
+    icon: UserCheck,
+  },
+  {
+    title: "Orçamentos",
+    url: "/quotes",
+    icon: DollarSign,
+  },
+  {
+    title: "Financeiro",
+    url: "/financial",
+    icon: BarChart3,
+  },
+  {
+    title: "Relatórios",
+    url: "/reports",
+    icon: BarChart3,
+  },
+  {
+    title: "Mapa",
+    url: "/map",
+    icon: MapPin,
+  },
+  {
+    title: "Backup",
+    url: "/backup",
+    icon: Database,
+  },
+  {
+    title: "Configurações",
+    url: "/settings",
+    icon: Settings,
+  },
+]
 
 export function AppSidebar() {
-  const location = useLocation();
-  const { isFeatureEnabled } = useFeatures();
-  const { settings } = useSettings();
-  const { t } = useLanguage();
-  const { state } = useSidebar();
-  const { currentLogo, hasLogo } = useLogo();
-
-  const isActive = (path: string) => {
-    if (path === "/") {
-      return location.pathname === "/" || location.pathname === "/dashboard";
-    }
-    if (path === "/map") {
-      return location.pathname === "/map";
-    }
-    return location.pathname.startsWith(path);
-  };
-
-  const filteredNavigationItems = navigationItems.filter(item => 
-    item.featureId === null || isFeatureEnabled(item.featureId)
-  );
+  const { settings } = useSettings()
 
   return (
-    <Sidebar className="border-r bg-card/30 backdrop-blur-sm">
-      {/* Header com Logo */}
-      <SidebarHeader className="border-b border-border/50">
-        <div className="flex items-center justify-center p-4">
-          {hasLogo ? (
-            <div className="w-full flex justify-center">
-              <img 
-                src={currentLogo} 
-                alt={settings.name}
-                className={`object-contain transition-all duration-200 ${
-                  state === "collapsed" ? "h-8 w-8" : "h-16 w-full max-w-[200px]"
-                }`}
-              />
-            </div>
-          ) : (
-            <div className="flex items-center justify-center">
-              <div className={`p-2 rounded-lg bg-primary text-primary-foreground transition-all duration-200 ${
-                state === "collapsed" ? "p-2" : "p-3"
-              }`}>
-                <Building2 className={`${state === "collapsed" ? "h-4 w-4" : "h-6 w-6"}`} />
-              </div>
-            </div>
-          )}
-        </div>
-      </SidebarHeader>
-
+    <Sidebar>
       <SidebarContent>
+        <div className="p-4 border-b">
+          <div className="flex items-center gap-2">
+            {settings.logo ? (
+              <img 
+                src={settings.logo} 
+                alt={settings.name} 
+                className="h-8 w-8 object-contain"
+              />
+            ) : null}
+            <h2 className="text-lg font-semibold">{settings.name}</h2>
+          </div>
+        </div>
         <SidebarGroup>
-          <SidebarGroupLabel>{t('nav.mainMenu')}</SidebarGroupLabel>
+          <SidebarGroupLabel>Aplicação</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {filteredNavigationItems.map((item, index) => (
-                <SidebarMenuItem key={item.title} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink to={item.url} className="flex items-center gap-3 transition-all hover:scale-105">
-                      <item.icon className="h-4 w-4" />
-                      <span>{t(item.title)}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>{t('nav.system')}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {secondaryItems.map((item) => (
+              {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink to={item.url} className="flex items-center gap-3 transition-all hover:scale-105">
-                      <item.icon className="h-4 w-4" />
-                      <span>{t(item.title)}</span>
-                    </NavLink>
+                  <SidebarMenuButton asChild>
+                    <a href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -130,5 +117,5 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  );
+  )
 }
