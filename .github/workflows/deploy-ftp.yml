@@ -10,23 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Puxar o código do repositório
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Configurar Node.js
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
+      # 3. Instalar dependências
       - name: Install dependencies
         run: npm install
 
-      # ---- build ----
+      # 4. Build do projeto (Vite)
       - name: Build Vite project
         run: npm run build
 
-      # ---- create .htaccess inside dist/ ----
-      - name: Add .htaccess for SPA routes
+      # 5. Criar .htaccess dentro da pasta dist/ para subdomínio
+      - name: Add .htaccess for subdomain SPA routes
         run: |
           cat << 'EOF' > dist/.htaccess
           RewriteEngine On
@@ -37,7 +40,7 @@ jobs:
           RewriteRule . /manager/index.html [L]
           EOF
 
-      # ---- upload dist/ (including .htaccess) to your FTP folder ----
+      # 6. Deploy via FTP para a Hostinger
       - name: Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
