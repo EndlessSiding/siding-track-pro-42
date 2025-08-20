@@ -10,68 +10,123 @@ interface BackupData {
   version: string;
   timestamp: string;
   data: {
-    clients: Client[];
-    projects: Project[];
-    teams: any[];
-    quotes: Quote[];
-    companySettings: any;
+    clients?: Client[];
+    projects?: Project[];
+    teams?: any[];
+    quotes?: Quote[];
+    companySettings?: any;
   };
+}
+
+interface BackupHistoryItem {
+  id: string;
+  name: string;
+  created_at: string;
+  file_size: number;
+  backup_data: BackupData;
+  included_tables: string[];
+  version: string;
 }
 
 export const useBackup = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [backupHistory, setBackupHistory] = useState<BackupHistoryItem[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const { toast } = useToast();
 
-  const exportBackup = async (): Promise<void> => {
+  const fetchBackupHistory = async (): Promise<void> => {
+    try {
+      setIsLoadingHistory(true);
+      const { data, error } = await supabase
+        .from('backup_history')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      setBackupHistory(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar histórico de backups:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar o histórico de backups",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const exportBackup = async (includedTables: string[]): Promise<void> => {
     try {
       setIsExporting(true);
       
-      // Buscar todos os dados das tabelas
-      const [clientsResult, projectsResult, teamsResult, quotesResult, settingsResult] = await Promise.all([
-        supabase.from('clients').select('*'),
-        supabase.from('projects').select('*'),
-        supabase.from('teams').select('*'),
-        supabase.from('quotes').select('*'),
-        supabase.from('company_settings').select('*').limit(1).single()
-      ]);
-
-      // Verificar erros
-      if (clientsResult.error) throw clientsResult.error;
-      if (projectsResult.error) throw projectsResult.error;
-      if (teamsResult.error) throw teamsResult.error;
-      if (quotesResult.error) throw quotesResult.error;
-      // Settings pode não existir ainda, então ignoramos o erro
-
       const backupData: BackupData = {
         version: "1.0.0",
         timestamp: new Date().toISOString(),
-        data: {
-          clients: clientsResult.data || [],
-          projects: projectsResult.data || [],
-          teams: teamsResult.data || [],
-          quotes: quotesResult.data || [],
-          companySettings: settingsResult.data || null
-        }
+        data: {}
       };
 
-      // Criar e baixar o arquivo
+      // Buscar dados conforme as tabelas selecionadas
+      if (includedTables.includes('clients')) {
+        const { data: clientsData, error: clientsError } = await supabase.from('clients').select('*');
+        if (clientsError) throw clientsError;
+        backupData.data.clients = clientsData || [];
+      }
+
+      if (includedTables.includes('projects')) {
+        const { data: projectsData, error: projectsError } = await supabase.from('projects').select('*');
+        if (projectsError) throw projectsError;
+        backupData.data.projects = projectsData || [];
+      }
+
+      if (includedTables.includes('teams')) {
+        const { data: teamsData, error: teamsError } = await supabase.from('teams').select('*');
+        if (teamsError) throw teamsError;
+        backupData.data.teams = teamsData || [];
+      }
+
+      if (includedTables.includes('quotes')) {
+        const { data: quotesData, error: quotesError } = await supabase.from('quotes').select('*');
+        if (quotesError) throw quotesError;
+        backupData.data.quotes = quotesData || [];
+      }
+
+      if (includedTables.includes('company_settings')) {
+        const { data: settingsData, error: settingsError } = await supabase
+          .from('company_settings')
+          .select('*')
+          .limit(1)
+          .single();
+        // Settings pode não existir, então ignoramos o erro
+        backupData.data.companySettings = settingsData || null;
+      }
+
       const dataStr = JSON.stringify(backupData, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `backup-sidingtrack-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const fileSize = new Blob([dataStr]).size;
+      const fileName = `backup-sidingtrack-${new Date().toISOString().split('T')[0]}`;
+
+      // Salvar no histórico interno
+      const { error: saveError } = await supabase
+        .from('backup_history')
+        .insert({
+          name: fileName,
+          file_size: fileSize,
+          backup_data: backupData,
+          included_tables: includedTables,
+          version: backupData.version
+        });
+
+      if (saveError) throw saveError;
 
       toast({
         title: "Backup criado com sucesso",
-        description: "O arquivo de backup foi baixado para seu computador",
+        description: "O backup foi salvo no histórico interno",
       });
+
+      // Atualizar o histórico
+      await fetchBackupHistory();
     } catch (error) {
       console.error('Erro ao criar backup:', error);
       toast({
@@ -81,6 +136,146 @@ export const useBackup = () => {
       });
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const downloadBackup = async (backupId: string): Promise<void> => {
+    try {
+      const backup = backupHistory.find(b => b.id === backupId);
+      if (!backup) {
+        throw new Error('Backup não encontrado');
+      }
+
+      const dataStr = JSON.stringify(backup.backup_data, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${backup.name}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Download iniciado",
+        description: "O arquivo de backup está sendo baixado",
+      });
+    } catch (error) {
+      console.error('Erro ao baixar backup:', error);
+      toast({
+        title: "Erro no download",
+        description: "Não foi possível baixar o backup",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteBackup = async (backupId: string): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('backup_history')
+        .delete()
+        .eq('id', backupId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Backup deletado",
+        description: "O backup foi removido do histórico",
+      });
+
+      // Atualizar o histórico
+      await fetchBackupHistory();
+    } catch (error) {
+      console.error('Erro ao deletar backup:', error);
+      toast({
+        title: "Erro ao deletar",
+        description: "Não foi possível deletar o backup",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const restoreBackup = async (backupId: string): Promise<void> => {
+    try {
+      setIsImporting(true);
+      
+      const backup = backupHistory.find(b => b.id === backupId);
+      if (!backup) {
+        throw new Error('Backup não encontrado');
+      }
+
+      const confirmImport = window.confirm(
+        `Tem certeza que deseja restaurar este backup?\n\n` +
+        `Data do backup: ${new Date(backup.created_at).toLocaleString()}\n` +
+        `Versão: ${backup.version}\n\n` +
+        `ATENÇÃO: Isso irá substituir todos os dados atuais!`
+      );
+
+      if (!confirmImport) {
+        setIsImporting(false);
+        return;
+      }
+
+      const backupData = backup.backup_data;
+
+      // Deletar dados existentes e inserir novos dados baseado nas tabelas incluídas
+      if (backup.included_tables.includes('clients') && backupData.data.clients) {
+        await supabase.from('clients').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (backupData.data.clients.length > 0) {
+          const { error } = await supabase.from('clients').insert(backupData.data.clients);
+          if (error) throw error;
+        }
+      }
+
+      if (backup.included_tables.includes('projects') && backupData.data.projects) {
+        await supabase.from('projects').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (backupData.data.projects.length > 0) {
+          const { error } = await supabase.from('projects').insert(backupData.data.projects);
+          if (error) throw error;
+        }
+      }
+
+      if (backup.included_tables.includes('teams') && backupData.data.teams) {
+        await supabase.from('teams').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (backupData.data.teams.length > 0) {
+          const { error } = await supabase.from('teams').insert(backupData.data.teams);
+          if (error) throw error;
+        }
+      }
+
+      if (backup.included_tables.includes('quotes') && backupData.data.quotes) {
+        await supabase.from('quotes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (backupData.data.quotes.length > 0) {
+          const { error } = await supabase.from('quotes').insert(backupData.data.quotes);
+          if (error) throw error;
+        }
+      }
+
+      if (backup.included_tables.includes('company_settings') && backupData.data.companySettings) {
+        await supabase.from('company_settings').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        const { error } = await supabase.from('company_settings').insert(backupData.data.companySettings);
+        if (error) throw error;
+      }
+
+      toast({
+        title: "Backup restaurado com sucesso",
+        description: "Todos os dados foram restaurados do backup",
+      });
+
+      // Recarregar a página para atualizar todos os dados
+      window.location.reload();
+    } catch (error) {
+      console.error('Erro ao restaurar backup:', error);
+      toast({
+        title: "Erro ao restaurar backup",
+        description: "Não foi possível restaurar o backup",
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -110,40 +305,37 @@ export const useBackup = () => {
       }
 
       // Importar dados (substituir todos os dados existentes)
-      const { data, error: deleteClientsError } = await supabase.from('clients').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      const { data: data2, error: deleteProjectsError } = await supabase.from('projects').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      const { data: data3, error: deleteTeamsError } = await supabase.from('teams').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      const { data: data4, error: deleteQuotesError } = await supabase.from('quotes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('clients').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('projects').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('teams').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('quotes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
       // Inserir novos dados
-      if (backupData.data.clients.length > 0) {
-        const { error: clientsError } = await supabase.from('clients').insert(backupData.data.clients);
-        if (clientsError) throw clientsError;
+      if (backupData.data.clients && backupData.data.clients.length > 0) {
+        const { error } = await supabase.from('clients').insert(backupData.data.clients);
+        if (error) throw error;
       }
 
-      if (backupData.data.projects.length > 0) {
-        const { error: projectsError } = await supabase.from('projects').insert(backupData.data.projects);
-        if (projectsError) throw projectsError;
+      if (backupData.data.projects && backupData.data.projects.length > 0) {
+        const { error } = await supabase.from('projects').insert(backupData.data.projects);
+        if (error) throw error;
       }
 
-      if (backupData.data.teams.length > 0) {
-        const { error: teamsError } = await supabase.from('teams').insert(backupData.data.teams);
-        if (teamsError) throw teamsError;
+      if (backupData.data.teams && backupData.data.teams.length > 0) {
+        const { error } = await supabase.from('teams').insert(backupData.data.teams);
+        if (error) throw error;
       }
 
-      if (backupData.data.quotes.length > 0) {
-        const { error: quotesError } = await supabase.from('quotes').insert(backupData.data.quotes);
-        if (quotesError) throw quotesError;
+      if (backupData.data.quotes && backupData.data.quotes.length > 0) {
+        const { error } = await supabase.from('quotes').insert(backupData.data.quotes);
+        if (error) throw error;
       }
 
       // Importar configurações da empresa se existirem
       if (backupData.data.companySettings) {
-        // Primeiro, deletar configurações existentes
         await supabase.from('company_settings').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-        
-        // Inserir configurações do backup
-        const { error: settingsError } = await supabase.from('company_settings').insert(backupData.data.companySettings);
-        if (settingsError) throw settingsError;
+        const { error } = await supabase.from('company_settings').insert(backupData.data.companySettings);
+        if (error) throw error;
       }
 
       toast({
@@ -168,7 +360,13 @@ export const useBackup = () => {
   return {
     exportBackup,
     importBackup,
+    downloadBackup,
+    deleteBackup,
+    restoreBackup,
+    fetchBackupHistory,
+    backupHistory,
     isExporting,
     isImporting,
+    isLoadingHistory,
   };
 };

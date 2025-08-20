@@ -1,15 +1,26 @@
 
 import { useState, useRef } from "react";
 import { useBackup } from "@/hooks/useBackup";
+import { BackupHistory } from "./BackupHistory";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Download, Upload, Database, AlertTriangle } from "lucide-react";
+import { Download, Upload, Database, AlertTriangle, Settings } from "lucide-react";
+
+const AVAILABLE_TABLES = [
+  { id: 'clients', label: 'Clientes', description: 'Todos os dados de clientes' },
+  { id: 'projects', label: 'Projetos', description: 'Projetos e seu progresso' },
+  { id: 'quotes', label: 'Orçamentos', description: 'Orçamentos e propostas' },
+  { id: 'teams', label: 'Equipes', description: 'Equipes e especializações' },
+  { id: 'company_settings', label: 'Configurações', description: 'Configurações da empresa' },
+];
 
 export const BackupManager = () => {
   const { exportBackup, importBackup, isExporting, isImporting } = useBackup();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedTables, setSelectedTables] = useState<string[]>(['clients', 'projects', 'quotes', 'teams', 'company_settings']);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,6 +46,22 @@ export const BackupManager = () => {
     }
   };
 
+  const handleExport = async () => {
+    if (selectedTables.length === 0) {
+      alert('Selecione pelo menos uma tabela para incluir no backup.');
+      return;
+    }
+    await exportBackup(selectedTables);
+  };
+
+  const handleTableToggle = (tableId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTables(prev => [...prev, tableId]);
+    } else {
+      setSelectedTables(prev => prev.filter(id => id !== tableId));
+    }
+  };
+
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -53,7 +80,7 @@ export const BackupManager = () => {
       <Alert>
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          Os backups incluem todos os dados de clientes, projetos, equipes, orçamentos e configurações da empresa. 
+          Os backups são armazenados internamente e incluem apenas os dados selecionados. 
           Mantenha seus backups seguros, pois contêm informações sensíveis.
         </AlertDescription>
       </Alert>
@@ -67,24 +94,43 @@ export const BackupManager = () => {
               Criar Backup
             </CardTitle>
             <CardDescription>
-              Exporta todos os dados do sistema para um arquivo JSON seguro
+              Selecione quais dados incluir no backup
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                O backup incluirá:
-              </p>
-              <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                <li>• Todos os clientes e informações de contato</li>
-                <li>• Projetos e seu progresso</li>
-                <li>• Equipes e suas especializações</li>
-                <li>• Orçamentos e propostas</li>
-                <li>• Configurações da empresa</li>
-              </ul>
+              <div>
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Selecionar Dados para Backup:
+                </h4>
+                <div className="space-y-3">
+                  {AVAILABLE_TABLES.map((table) => (
+                    <div key={table.id} className="flex items-start space-x-3">
+                      <Checkbox
+                        id={table.id}
+                        checked={selectedTables.includes(table.id)}
+                        onCheckedChange={(checked) => handleTableToggle(table.id, checked as boolean)}
+                      />
+                      <div className="grid gap-1.5 leading-none">
+                        <label
+                          htmlFor={table.id}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {table.label}
+                        </label>
+                        <p className="text-xs text-muted-foreground">
+                          {table.description}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <Button 
-                onClick={exportBackup} 
-                disabled={isExporting}
+                onClick={handleExport} 
+                disabled={isExporting || selectedTables.length === 0}
                 className="w-full"
               >
                 <Download className="mr-2 h-4 w-4" />
@@ -102,7 +148,7 @@ export const BackupManager = () => {
               Importar Backup
             </CardTitle>
             <CardDescription>
-              Restaura dados de um arquivo de backup anteriormente criado
+              Restaura dados de um arquivo de backup externo
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -110,7 +156,7 @@ export const BackupManager = () => {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>ATENÇÃO:</strong> Importar um backup irá substituir TODOS os dados atuais. 
+                  <strong>ATENÇÃO:</strong> Importar um backup externo irá substituir TODOS os dados atuais. 
                   Esta ação não pode ser desfeita.
                 </AlertDescription>
               </Alert>
@@ -139,12 +185,15 @@ export const BackupManager = () => {
                 className="w-full"
               >
                 <Upload className="mr-2 h-4 w-4" />
-                {isImporting ? 'Importando...' : 'Importar Backup'}
+                {isImporting ? 'Importando...' : 'Importar Backup Externo'}
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Histórico de Backups */}
+      <BackupHistory />
 
       <Card>
         <CardHeader>
@@ -156,10 +205,10 @@ export const BackupManager = () => {
               <strong>Frequência:</strong> Recomendamos criar backups semanalmente ou sempre que fizer mudanças importantes.
             </div>
             <div>
-              <strong>Armazenamento:</strong> Mantenha backups em locais seguros (nuvem, HD externo) e nunca apenas no computador local.
+              <strong>Armazenamento:</strong> Os backups são salvos internamente. Use a opção de download para manter cópias externas.
             </div>
             <div>
-              <strong>Nomenclatura:</strong> Os backups são nomeados automaticamente com a data (ex: backup-sidingtrack-2024-01-15.json).
+              <strong>Seletividade:</strong> Você pode escolher quais dados incluir em cada backup conforme sua necessidade.
             </div>
             <div>
               <strong>Segurança:</strong> Os arquivos de backup contêm dados sensíveis dos clientes. Proteja-os adequadamente.
