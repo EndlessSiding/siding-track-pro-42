@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +35,18 @@ export const useBackup = () => {
   const [backupHistory, setBackupHistory] = useState<BackupHistoryItem[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const { toast } = useToast();
+
+  // Define ordem de dependências para evitar violação de FKs:
+  // - Deletar: filhos primeiro, depois pais
+  // - Inserir: pais primeiro, depois filhos
+  const getTableOrders = (tables: string[]) => {
+    const deletePriority = ['projects', 'quotes', 'teams', 'clients', 'company_settings'];
+    const insertPriority = ['clients', 'projects', 'quotes', 'teams']; // company_settings tratado separadamente
+    return {
+      deleteOrder: deletePriority.filter((t) => tables.includes(t)),
+      insertOrder: insertPriority.filter((t) => tables.includes(t)),
+    };
+  };
 
   const fetchBackupHistory = async (): Promise<void> => {
     try {
@@ -237,12 +250,15 @@ export const useBackup = () => {
       }
 
       const backupData = backup.backup_data;
+      const included = backup.included_tables || [];
+      const { deleteOrder, insertOrder } = getTableOrders(included);
       const insertedCounts: Record<string, number> = {};
 
-      for (const tableName of backup.included_tables) {
-        console.log(`Restaurando tabela: ${tableName}`);
+      console.info('[Backup] Ordem de deleção:', deleteOrder);
+      // 1) Deletar filhos -> pais
+      for (const tableName of deleteOrder) {
         try {
-          // Limpar todos os dados da tabela
+          console.info(`[Backup] Limpando tabela: ${tableName}`);
           const { error: deleteError } = await supabase
             .from(tableName)
             .delete()
@@ -250,13 +266,22 @@ export const useBackup = () => {
 
           if (deleteError) {
             console.error(`Erro ao limpar ${tableName}:`, deleteError);
+          } else {
+            console.info(`[Backup] Tabela ${tableName} limpa`);
           }
+        } catch (tableError) {
+          console.error(`Erro ao limpar tabela ${tableName}:`, tableError);
+        }
+      }
 
+      console.info('[Backup] Ordem de inserção:', insertOrder);
+      // 2) Inserir pais -> filhos
+      for (const tableName of insertOrder) {
+        try {
           const tableData = backupData.data[tableName as keyof typeof backupData.data];
           if (tableData && Array.isArray(tableData) && tableData.length > 0) {
             const processedData = processDataForInsert(tableData, tableName);
-
-            console.log(`Inserindo ${processedData.length} registros em ${tableName}`);
+            console.info(`[Backup] Inserindo ${processedData.length} registros em ${tableName}`);
             const { error: insertError } = await supabase
               .from(tableName)
               .insert(processedData);
@@ -271,18 +296,20 @@ export const useBackup = () => {
               .select('*', { count: 'exact', head: true });
 
             insertedCounts[tableName] = count ?? 0;
-            console.log(`Tabela ${tableName} agora possui ${insertedCounts[tableName]} registros`);
+            console.info(`[Backup] Tabela ${tableName} agora possui ${insertedCounts[tableName]} registros`);
           } else {
             insertedCounts[tableName] = 0;
-            console.log(`Nenhum dado encontrado para ${tableName} no backup`);
+            console.info(`[Backup] Nenhum dado encontrado para ${tableName} no backup`);
           }
         } catch (tableError) {
-          console.error(`Erro ao processar tabela ${tableName}:`, tableError);
+          console.error(`Erro ao processar inserção da tabela ${tableName}:`, tableError);
         }
       }
 
-      if (backup.included_tables.includes('company_settings') && backupData.data.companySettings) {
+      // 3) company_settings (objeto único)
+      if (included.includes('company_settings') && backupData.data.companySettings) {
         try {
+          console.info('[Backup] Restaurando company_settings');
           await supabase.from('company_settings').delete().not('id', 'is', null);
 
           const settingsData = { ...backupData.data.companySettings };
@@ -291,6 +318,7 @@ export const useBackup = () => {
 
           const { error } = await supabase.from('company_settings').insert(settingsData);
           if (error) throw error;
+          console.info('[Backup] company_settings restaurado');
         } catch (settingsError) {
           console.error('Erro ao restaurar configurações:', settingsError);
         }
@@ -337,19 +365,20 @@ export const useBackup = () => {
         return;
       }
 
-      const tablesToImport: TableName[] = [];
-      if (backupData.data.clients) tablesToImport.push('clients');
-      if (backupData.data.projects) tablesToImport.push('projects');
-      if (backupData.data.teams) tablesToImport.push('teams');
-      if (backupData.data.quotes) tablesToImport.push('quotes');
+      const tablesDetected: TableName[] = [];
+      if (backupData.data.clients) tablesDetected.push('clients');
+      if (backupData.data.projects) tablesDetected.push('projects');
+      if (backupData.data.teams) tablesDetected.push('teams');
+      if (backupData.data.quotes) tablesDetected.push('quotes');
 
+      const { deleteOrder, insertOrder } = getTableOrders(tablesDetected as string[]);
       const insertedCounts: Record<string, number> = {};
 
-      for (const tableName of tablesToImport) {
+      console.info('[Import] Ordem de deleção:', deleteOrder);
+      // 1) Deletar filhos -> pais
+      for (const tableName of deleteOrder) {
         try {
-          console.log(`Importando tabela: ${tableName}`);
-
-          // Limpar todos os dados da tabela
+          console.info(`[Import] Limpando tabela: ${tableName}`);
           const { error: deleteError } = await supabase
             .from(tableName)
             .delete()
@@ -357,13 +386,22 @@ export const useBackup = () => {
 
           if (deleteError) {
             console.error(`Erro ao limpar ${tableName}:`, deleteError);
+          } else {
+            console.info(`[Import] Tabela ${tableName} limpa`);
           }
+        } catch (tableError) {
+          console.error(`Erro ao limpar tabela ${tableName}:`, tableError);
+        }
+      }
 
+      console.info('[Import] Ordem de inserção:', insertOrder);
+      // 2) Inserir pais -> filhos
+      for (const tableName of insertOrder) {
+        try {
           const tableData = backupData.data[tableName];
           if (tableData && Array.isArray(tableData) && tableData.length > 0) {
             const processedData = processDataForInsert(tableData, tableName);
-
-            console.log(`Inserindo ${processedData.length} registros em ${tableName}`);
+            console.info(`[Import] Inserindo ${processedData.length} registros em ${tableName}`);
             const { error: insertError } = await supabase
               .from(tableName)
               .insert(processedData);
@@ -378,18 +416,20 @@ export const useBackup = () => {
               .select('*', { count: 'exact', head: true });
 
             insertedCounts[tableName] = count ?? 0;
-            console.log(`Tabela ${tableName} agora possui ${insertedCounts[tableName]} registros`);
+            console.info(`[Import] Tabela ${tableName} agora possui ${insertedCounts[tableName]} registros`);
           } else {
             insertedCounts[tableName] = 0;
-            console.log(`Nenhum dado para inserir em ${tableName}`);
+            console.info(`[Import] Nenhum dado para inserir em ${tableName}`);
           }
         } catch (tableError) {
-          console.error(`Erro ao processar tabela ${tableName}:`, tableError);
+          console.error(`Erro ao processar inserção da tabela ${tableName}:`, tableError);
         }
       }
 
+      // 3) company_settings (objeto único)
       if (backupData.data.companySettings) {
         try {
+          console.info('[Import] Restaurando company_settings');
           await supabase.from('company_settings').delete().not('id', 'is', null);
 
           const settingsData = { ...backupData.data.companySettings };
@@ -398,6 +438,7 @@ export const useBackup = () => {
 
           const { error } = await supabase.from('company_settings').insert(settingsData);
           if (error) throw error;
+          console.info('[Import] company_settings restaurado');
         } catch (settingsError) {
           console.error('Erro ao importar configurações:', settingsError);
         }
@@ -434,3 +475,4 @@ export const useBackup = () => {
     isLoadingHistory,
   };
 };
+
