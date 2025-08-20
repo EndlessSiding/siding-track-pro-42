@@ -1,38 +1,52 @@
-name: Build and FTP deploy to saas.draccusagency.com
+name: Build and FTP deploy to Hostinger (with htaccess)
 
 on:
   push:
-    branches:
-      - main  # dispara o deploy sempre que houver push na branch main
+    branches: ["main"]
+  workflow_dispatch: {}
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 18
 
       - name: Install dependencies
         run: npm install
 
-      - name: Build (Vite)
+      # ---- build ----
+      - name: Build Vite project
         run: npm run build
 
-      - name: FTP Deploy (FTPS)
+      # ---- create .htaccess inside dist/ ----
+      - name: Add .htaccess for SPA routes
+        run: |
+          cat << 'EOF' > dist/.htaccess
+          RewriteEngine On
+          RewriteBase /
+          RewriteRule ^index\.html$ - [L]
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule . /index.html [L]
+          EOF
+
+      # ---- upload dist/ (including .htaccess) to your FTP folder ----
+      - name: Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
+          server: 147.93.42.93
+          username: u887144620
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           protocol: ftps
           security: loose
           local-dir: dist/
-          server-dir: saas/         # seu FTP já inicia em public_html, então basta 'saas/'
+          server-dir: /home/u887144620/domains/endlesssiding.com/public_html/manager/
           dangerous-clean-slate: true
