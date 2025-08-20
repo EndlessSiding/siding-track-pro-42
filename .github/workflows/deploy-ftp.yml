@@ -51,5 +51,5 @@ jobs:
           protocol: ftps
           security: loose
           local-dir: dist/
-          server-dir: /home/u887144620/domains/endlesssiding.com/public_html/manager/
+          server-dir: manager/
           dangerous-clean-slate: true
