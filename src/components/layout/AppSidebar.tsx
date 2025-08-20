@@ -24,7 +24,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { useSettings } from "@/contexts/SettingsContext"
+import { useLogo } from "@/hooks/useLogo"
 
 // Menu items.
 const items = [
@@ -81,21 +81,24 @@ const items = [
 ]
 
 export function AppSidebar() {
-  const { settings } = useSettings()
+  const { currentLogo, hasLogo } = useLogo()
 
   return (
     <Sidebar>
       <SidebarContent>
         <div className="p-4 border-b">
-          <div className="flex items-center gap-2">
-            {settings.logo ? (
+          <div className="flex items-center justify-center">
+            {hasLogo ? (
               <img 
-                src={settings.logo} 
-                alt={settings.name} 
+                src={currentLogo} 
+                alt="Logo" 
                 className="h-8 w-8 object-contain"
               />
-            ) : null}
-            <h2 className="text-lg font-semibold">{settings.name}</h2>
+            ) : (
+              <div className="h-8 w-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Home className="h-4 w-4 text-primary" />
+              </div>
+            )}
           </div>
         </div>
         <SidebarGroup>
