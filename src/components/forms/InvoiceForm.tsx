@@ -17,7 +17,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Dialog,
 } from "@/components/ui/dialog";
+import { useApp } from "@/contexts/AppContext";
+import { ClientForm } from "@/components/forms/ClientForm";
+import ProjectForm from "@/components/forms/ProjectForm";
+import { Plus } from "lucide-react";
 
 interface InvoiceFormProps {
   onSubmit: (data: any) => void;
@@ -25,9 +30,13 @@ interface InvoiceFormProps {
 }
 
 export default function InvoiceForm({ onSubmit, onCancel }: InvoiceFormProps) {
+  const { clients, projects, addClient, addProject } = useApp();
+  const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+  
   const [formData, setFormData] = useState({
-    client: "",
-    project: "",
+    clientId: "",
+    projectId: "",
     amount: "",
     dueDate: "",
     description: "",
@@ -38,22 +47,72 @@ export default function InvoiceForm({ onSubmit, onCancel }: InvoiceFormProps) {
     e.preventDefault();
     const invoiceNumber = `INV-${String(Date.now()).slice(-6)}`;
     
+    const selectedClient = clients.find(c => c.id === formData.clientId);
+    const selectedProject = projects.find(p => p.id === formData.projectId);
+    
     onSubmit({
       ...formData,
       id: invoiceNumber,
+      client: selectedClient?.name || "",
+      project: selectedProject?.name || "",
       amount: parseFloat(formData.amount) || 0,
       createdDate: new Date().toISOString().split('T')[0]
     });
     
     setFormData({
-      client: "",
-      project: "",
+      clientId: "",
+      projectId: "",
       amount: "",
       dueDate: "",
       description: "",
       status: "draft"
     });
   };
+
+  const handleCreateClient = (clientData: any) => {
+    addClient(clientData);
+    setIsClientDialogOpen(false);
+    // Auto-select the new client
+    setTimeout(() => {
+      const newClient = clients[0];
+      if (newClient) {
+        setFormData({ ...formData, clientId: newClient.id });
+      }
+    }, 100);
+  };
+
+  const handleCreateProject = (projectData: any) => {
+    addProject(projectData);
+    setIsProjectDialogOpen(false);
+    // Auto-select the new project
+    setTimeout(() => {
+      const newProject = projects[0];
+      if (newProject) {
+        setFormData({ ...formData, projectId: newProject.id });
+      }
+    }, 100);
+  };
+
+  const handleClientChange = (clientId: string) => {
+    if (clientId === "new") {
+      setIsClientDialogOpen(true);
+      return;
+    }
+    setFormData({ ...formData, clientId });
+  };
+
+  const handleProjectChange = (projectId: string) => {
+    if (projectId === "new") {
+      setIsProjectDialogOpen(true);
+      return;
+    }
+    setFormData({ ...formData, projectId });
+  };
+
+  // Filter projects by selected client
+  const filteredProjects = formData.clientId 
+    ? projects.filter(p => p.clientId === formData.clientId)
+    : projects;
 
   return (
     <DialogContent className="sm:max-w-[425px]">
@@ -68,29 +127,58 @@ export default function InvoiceForm({ onSubmit, onCancel }: InvoiceFormProps) {
         <div className="space-y-2">
           <Label htmlFor="client">Cliente</Label>
           <Select
-            value={formData.client}
-            onValueChange={(value) => setFormData({ ...formData, client: value })}
+            value={formData.clientId}
+            onValueChange={handleClientChange}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione o cliente" />
+              <SelectValue placeholder="Selecione um cliente" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="John & Jane Smith">John & Jane Smith</SelectItem>
-              <SelectItem value="ABC Corporation">ABC Corporation</SelectItem>
-              <SelectItem value="Robert Johnson">Robert Johnson</SelectItem>
+              <SelectItem value="new" className="text-blue-600 font-medium">
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Cliente
+                </div>
+              </SelectItem>
+              {clients.map((client) => (
+                <SelectItem key={client.id} value={client.id}>
+                  {client.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="project">Projeto</Label>
-          <Input
-            id="project"
-            value={formData.project}
-            onChange={(e) => setFormData({ ...formData, project: e.target.value })}
-            placeholder="Nome do projeto relacionado"
-            required
-          />
+          <Select
+            value={formData.projectId}
+            onValueChange={handleProjectChange}
+            disabled={!formData.clientId}
+          >
+            <SelectTrigger>
+              <SelectValue 
+                placeholder={
+                  !formData.clientId 
+                    ? "Selecione um cliente primeiro" 
+                    : "Selecione um projeto"
+                } 
+              />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="new" className="text-blue-600 font-medium">
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Projeto
+                </div>
+              </SelectItem>
+              {filteredProjects.map((project) => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -155,6 +243,22 @@ export default function InvoiceForm({ onSubmit, onCancel }: InvoiceFormProps) {
           <Button type="submit">Criar Fatura</Button>
         </DialogFooter>
       </form>
+
+      {/* Dialog para criar novo cliente */}
+      <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
+        <ClientForm
+          onSubmit={handleCreateClient}
+          onCancel={() => setIsClientDialogOpen(false)}
+        />
+      </Dialog>
+
+      {/* Dialog para criar novo projeto */}
+      <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+        <ProjectForm
+          onSubmit={handleCreateProject}
+          onCancel={() => setIsProjectDialogOpen(false)}
+        />
+      </Dialog>
     </DialogContent>
   );
 }

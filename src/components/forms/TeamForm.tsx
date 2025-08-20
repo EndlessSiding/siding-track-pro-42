@@ -17,8 +17,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Dialog,
 } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
+import { useApp } from "@/contexts/AppContext";
+import ProjectForm from "@/components/forms/ProjectForm";
 
 interface TeamFormProps {
   onSubmit: (data: any) => void;
@@ -26,15 +29,22 @@ interface TeamFormProps {
 }
 
 export default function TeamForm({ onSubmit, onCancel }: TeamFormProps) {
+  const { projects, addProject } = useApp();
+  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: "",
-    availability: "available"
+    availability: "available",
+    currentProject: ""
   });
   
   const [members, setMembers] = useState<Array<{ name: string; role: string }>>([]);
   const [newMember, setNewMember] = useState({ name: "", role: "" });
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [newSpecialty, setNewSpecialty] = useState("");
+
+  // Filter available projects (not completed)
+  const availableProjects = projects.filter(p => p.status !== "completed");
 
   const addMember = () => {
     if (newMember.name && newMember.role) {
@@ -69,7 +79,7 @@ export default function TeamForm({ onSubmit, onCancel }: TeamFormProps) {
       ...formData,
       members,
       specialties,
-      currentProject: null,
+      currentProject: formData.currentProject || undefined,
       performance: {
         efficiency: 90,
         quality: 90,
@@ -78,9 +88,29 @@ export default function TeamForm({ onSubmit, onCancel }: TeamFormProps) {
     });
     
     // Reset form
-    setFormData({ name: "", availability: "available" });
+    setFormData({ name: "", availability: "available", currentProject: "" });
     setMembers([]);
     setSpecialties([]);
+  };
+
+  const handleCreateProject = (projectData: any) => {
+    addProject(projectData);
+    setIsProjectDialogOpen(false);
+    // Auto-select the new project
+    setTimeout(() => {
+      const newProject = projects[0];
+      if (newProject) {
+        setFormData({ ...formData, currentProject: newProject.id });
+      }
+    }, 100);
+  };
+
+  const handleProjectChange = (projectId: string) => {
+    if (projectId === "new") {
+      setIsProjectDialogOpen(true);
+      return;
+    }
+    setFormData({ ...formData, currentProject: projectId });
   };
 
   return (
@@ -117,6 +147,32 @@ export default function TeamForm({ onSubmit, onCancel }: TeamFormProps) {
               <SelectItem value="available">Disponível</SelectItem>
               <SelectItem value="busy">Ocupada</SelectItem>
               <SelectItem value="off">Ausente</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="currentProject">Projeto Atual (Opcional)</Label>
+          <Select
+            value={formData.currentProject}
+            onValueChange={handleProjectChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um projeto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Nenhum projeto</SelectItem>
+              <SelectItem value="new" className="text-blue-600 font-medium">
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Projeto
+                </div>
+              </SelectItem>
+              {availableProjects.map((project) => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.name} - {project.client}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -209,6 +265,14 @@ export default function TeamForm({ onSubmit, onCancel }: TeamFormProps) {
           <Button type="submit">Criar Equipe</Button>
         </DialogFooter>
       </form>
+
+      {/* Dialog para criar novo projeto */}
+      <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+        <ProjectForm
+          onSubmit={handleCreateProject}
+          onCancel={() => setIsProjectDialogOpen(false)}
+        />
+      </Dialog>
     </DialogContent>
   );
 }

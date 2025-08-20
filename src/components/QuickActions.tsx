@@ -5,7 +5,7 @@ import { Plus, Users, Building2, FileText } from "lucide-react";
 import { useState } from "react";
 import ProjectForm from "@/components/forms/ProjectForm";
 import { ClientForm } from "@/components/forms/ClientForm";
-import { QuoteForm } from "@/components/forms/QuoteForm";
+import { QuoteFormWithClients } from "@/components/forms/QuoteFormWithClients";
 import { useApp } from "@/contexts/AppContext";
 
 export default function QuickActions() {
@@ -72,7 +72,7 @@ export default function QuickActions() {
           </Button>
         </DialogTrigger>
         {isQuoteDialogOpen && (
-          <QuoteForm
+          <QuoteFormWithClients
             onSubmit={handleCreateQuote}
             onCancel={() => setIsQuoteDialogOpen(false)}
           />

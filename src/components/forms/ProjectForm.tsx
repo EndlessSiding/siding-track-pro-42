@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,8 +17,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Dialog,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Project } from "@/types/project";
+import { useApp } from "@/contexts/AppContext";
+import { ClientForm } from "@/components/forms/ClientForm";
+import { Plus } from "lucide-react";
 
 interface ProjectFormProps {
   onSubmit: (data: any) => void;
@@ -26,8 +32,12 @@ interface ProjectFormProps {
 }
 
 export default function ProjectForm({ onSubmit, onCancel, project }: ProjectFormProps) {
+  const { clients, addClient } = useApp();
+  const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: project?.name || "",
+    clientId: project?.clientId || "",
     client: project?.client || "",
     address: project?.address || "",
     budget: project?.budget?.toString() || "",
@@ -38,23 +48,55 @@ export default function ProjectForm({ onSubmit, onCancel, project }: ProjectForm
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Find selected client info
+    const selectedClient = clients.find(c => c.id === formData.clientId);
+    
     onSubmit({
       ...formData,
+      client: selectedClient?.name || formData.client,
+      clientId: formData.clientId || "temp-client-id",
       budget: parseFloat(formData.budget) || 0,
       progress: project?.progress || 0,
       spent: project?.spent || 0,
       team: project?.team || [],
-      clientId: project?.clientId || "temp-client-id",
       startDate: project?.startDate || new Date().toISOString().split('T')[0]
     });
     setFormData({
       name: "",
+      clientId: "",
       client: "",
       address: "",
       budget: "",
       dueDate: "",
       description: "",
       status: "planning" as const
+    });
+  };
+
+  const handleCreateClient = (clientData: any) => {
+    addClient(clientData);
+    setIsClientDialogOpen(false);
+    // Auto-select the new client (it will be added to the list)
+    setTimeout(() => {
+      const newClient = clients[0]; // New clients are added to the beginning
+      if (newClient) {
+        setFormData({ ...formData, clientId: newClient.id, client: newClient.name });
+      }
+    }, 100);
+  };
+
+  const handleClientChange = (clientId: string) => {
+    if (clientId === "new") {
+      setIsClientDialogOpen(true);
+      return;
+    }
+    
+    const selectedClient = clients.find(c => c.id === clientId);
+    setFormData({ 
+      ...formData, 
+      clientId, 
+      client: selectedClient?.name || ""
     });
   };
 
@@ -81,13 +123,27 @@ export default function ProjectForm({ onSubmit, onCancel, project }: ProjectForm
 
         <div className="space-y-2">
           <Label htmlFor="client">Cliente</Label>
-          <Input
-            id="client"
-            value={formData.client}
-            onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-            placeholder="Nome do cliente"
-            required
-          />
+          <Select
+            value={formData.clientId}
+            onValueChange={handleClientChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="new" className="text-blue-600 font-medium">
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Novo Cliente
+                </div>
+              </SelectItem>
+              {clients.map((client) => (
+                <SelectItem key={client.id} value={client.id}>
+                  {client.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
@@ -164,6 +220,14 @@ export default function ProjectForm({ onSubmit, onCancel, project }: ProjectForm
           <Button type="submit">{project ? "Salvar Alterações" : "Criar Projeto"}</Button>
         </DialogFooter>
       </form>
+
+      {/* Dialog para criar novo cliente */}
+      <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
+        <ClientForm
+          onSubmit={handleCreateClient}
+          onCancel={() => setIsClientDialogOpen(false)}
+        />
+      </Dialog>
     </DialogContent>
   );
 }
