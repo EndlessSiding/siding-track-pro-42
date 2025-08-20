@@ -1,0 +1,67 @@
+name: Deploy to Hostinger (manager)
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci || npm i
+
+      # Build do Vite → força saída em dist/
+      - name: Build (Vite → dist/)
+        run: |
+          npm run build -- --outDir dist
+          echo "== Conteúdo de dist/ após o build =="
+          ls -la dist || true
+
+      # Falha imediatamente se o build não gerou index.html
+      - name: Verifica dist/index.html
+        run: |
+          if [ ! -f dist/index.html ]; then
+            echo "ERRO: dist/index.html não encontrado. O build não gerou estáticos."
+            echo "Revise seus scripts Vite ou vite.config.*"
+            exit 1
+          fi
+
+      # Adiciona .htaccess (SPA) e version.txt para teste
+      - name: Add .htaccess + version.txt
+        run: |
+          cat > dist/.htaccess <<'EOF'
+          RewriteEngine On
+          RewriteBase /
+          RewriteRule ^index\.html$ - [L]
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteRule . /index.html [L]
+          EOF
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > dist/version.txt
+          ls -la dist
+
+      # Deploy via FTPS
+      - name: FTP Deploy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
+          security: loose
+          local-dir: dist/
+          # seu usuário FTP "cai" dentro de public_html → então use apenas "manager/"
+          server-dir: manager/
+          dangerous-clean-slate: true
