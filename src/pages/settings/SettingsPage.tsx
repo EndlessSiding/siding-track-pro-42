@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useSettings } from "@/contexts/SettingsContext";
 import { useFeatures } from "@/contexts/FeaturesContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -85,11 +85,21 @@ export default function SettingsPage() {
   } = useLanguage();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("general");
+  const [notificationSettings, setNotificationSettings] = useState({
+    email: true,
+    browser: false,
+    projects: true,
+    financial: true
+  });
+  const [appearanceSettings, setAppearanceSettings] = useState({
+    theme: 'auto',
+    density: 'comfortable'
+  });
 
   const handleSave = () => {
     toast({
-      title: t('settings.success') || "Sucesso",
-      description: t('settings.settingsSaved') || "Configurações salvas com sucesso!",
+      title: t('settings.success'),
+      description: t('settings.settingsSaved'),
       variant: "default",
     });
   };
@@ -97,10 +107,24 @@ export default function SettingsPage() {
   const handleLanguageChange = (newLanguage: 'pt' | 'en') => {
     setLanguage(newLanguage);
     toast({
-      title: t('settings.success') || "Sucesso", 
-      description: t('settings.languageChanged') || "Idioma alterado com sucesso!",
+      title: t('settings.success'), 
+      description: t('settings.languageChanged'),
       variant: "default",
     });
+  };
+
+  const handleNotificationChange = (key: string, value: boolean) => {
+    setNotificationSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleAppearanceChange = (key: string, value: string) => {
+    setAppearanceSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
 
   const tabs = [{
@@ -324,7 +348,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <p className="text-sm text-muted-foreground">
-                      {t('settings.language.note') || 'As alterações de idioma são aplicadas imediatamente em todo o sistema.'}
+                      {t('settings.language.note')}
                     </p>
                   </div>
                 </div>
@@ -335,35 +359,194 @@ export default function SettingsPage() {
           {activeTab === "notifications" && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('settings.notifications')}</CardTitle>
-                <CardDescription>Configure suas preferências de notificação</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  {t('settings.notifications.title')}
+                </CardTitle>
+                <CardDescription>{t('settings.notifications.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Configurações de notificação em desenvolvimento...</p>
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">{t('settings.notifications.email')}</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {t('settings.notifications.emailDesc')}
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={notificationSettings.email} 
+                      onCheckedChange={(checked) => handleNotificationChange('email', checked)} 
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">{t('settings.notifications.browser')}</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {t('settings.notifications.browserDesc')}
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={notificationSettings.browser} 
+                      onCheckedChange={(checked) => handleNotificationChange('browser', checked)} 
+                    />
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">{t('settings.notifications.projects')}</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {t('settings.notifications.projectsDesc')}
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={notificationSettings.projects} 
+                      onCheckedChange={(checked) => handleNotificationChange('projects', checked)} 
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">{t('settings.notifications.financial')}</Label>
+                      <p className="text-sm text-muted-foreground">
+                        {t('settings.notifications.financialDesc')}
+                      </p>
+                    </div>
+                    <Switch 
+                      checked={notificationSettings.financial} 
+                      onCheckedChange={(checked) => handleNotificationChange('financial', checked)} 
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
 
           {activeTab === "security" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('settings.security')}</CardTitle>
-                <CardDescription>Gerencie configurações de segurança</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Configurações de segurança em desenvolvimento...</p>
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    {t('settings.security.title')}
+                  </CardTitle>
+                  <CardDescription>{t('settings.security.subtitle')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">{t('settings.security.password')}</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {t('settings.security.passwordDesc')}
+                        </p>
+                      </div>
+                      <Button variant="outline">
+                        {t('common.edit')}
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">{t('settings.security.twoFactor')}</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {t('settings.security.twoFactorDesc')}
+                        </p>
+                      </div>
+                      <Switch defaultChecked={false} />
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">{t('settings.security.sessions')}</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {t('settings.security.sessionsDesc')}
+                        </p>
+                      </div>
+                      <Button variant="outline">
+                        {t('common.view')}
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">{t('settings.security.backup')}</Label>
+                        <p className="text-sm text-muted-foreground">
+                          {t('settings.security.backupDesc')}
+                        </p>
+                      </div>
+                      <Switch defaultChecked={true} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {activeTab === "appearance" && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('settings.appearance')}</CardTitle>
-                <CardDescription>Personalize a aparência do sistema</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  {t('settings.appearance.title')}
+                </CardTitle>
+                <CardDescription>{t('settings.appearance.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Configurações de aparência em desenvolvimento...</p>
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <Label className="text-base">{t('settings.appearance.theme')}</Label>
+                    <p className="text-sm text-muted-foreground">
+                      {t('settings.appearance.themeDesc')}
+                    </p>
+                    <RadioGroup 
+                      value={appearanceSettings.theme} 
+                      onValueChange={(value) => handleAppearanceChange('theme', value)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="light" id="light" />
+                        <Label htmlFor="light">{t('settings.appearance.light')}</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="dark" id="dark" />
+                        <Label htmlFor="dark">{t('settings.appearance.dark')}</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="auto" id="auto" />
+                        <Label htmlFor="auto">{t('settings.appearance.auto')}</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="space-y-3">
+                    <Label className="text-base">{t('settings.appearance.density')}</Label>
+                    <p className="text-sm text-muted-foreground">
+                      {t('settings.appearance.densityDesc')}
+                    </p>
+                    <RadioGroup 
+                      value={appearanceSettings.density} 
+                      onValueChange={(value) => handleAppearanceChange('density', value)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="compact" id="compact" />
+                        <Label htmlFor="compact">{t('settings.appearance.compact')}</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="comfortable" id="comfortable" />
+                        <Label htmlFor="comfortable">{t('settings.appearance.comfortable')}</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="spacious" id="spacious" />
+                        <Label htmlFor="spacious">{t('settings.appearance.spacious')}</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
