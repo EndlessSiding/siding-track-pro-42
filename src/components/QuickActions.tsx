@@ -7,12 +7,14 @@ import ProjectForm from "@/components/forms/ProjectForm";
 import { ClientForm } from "@/components/forms/ClientForm";
 import { QuoteFormWithClients } from "@/components/forms/QuoteFormWithClients";
 import { useApp } from "@/contexts/AppContext";
+import { useMobileDetection } from "@/hooks/use-mobile-detection";
 
 export default function QuickActions() {
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [isClientDialogOpen, setIsClientDialogOpen] = useState(false);
   const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
   const { addProject, addClient, addQuote } = useApp();
+  const { isMobile } = useMobileDetection();
 
   const handleCreateProject = (projectData: any) => {
     addProject(projectData);
@@ -29,9 +31,12 @@ export default function QuickActions() {
     setIsQuoteDialogOpen(false);
   };
 
+  if (isMobile) {
+    return null; // Hide on mobile to save space
+  }
+
   return (
-    <div className="flex gap-2 mb-6">
-      {/* Novo Projeto */}
+    <div className="flex gap-2 mb-6 flex-wrap">
       <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
@@ -47,7 +52,6 @@ export default function QuickActions() {
         )}
       </Dialog>
 
-      {/* Novo Cliente */}
       <Dialog open={isClientDialogOpen} onOpenChange={setIsClientDialogOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
@@ -63,7 +67,6 @@ export default function QuickActions() {
         )}
       </Dialog>
 
-      {/* Novo Orçamento */}
       <Dialog open={isQuoteDialogOpen} onOpenChange={setIsQuoteDialogOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2">
