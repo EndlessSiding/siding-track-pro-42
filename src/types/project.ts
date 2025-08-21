@@ -21,6 +21,15 @@ export interface Project {
     lat: number;
     lng: number;
   };
+  checklist?: ProjectChecklistItem[];
+}
+
+export interface ProjectChecklistItem {
+  id: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  createdAt: string;
 }
 
 export interface ProjectTask {

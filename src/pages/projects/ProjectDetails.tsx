@@ -8,6 +8,8 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, MapPin, Calendar, Users, DollarSign, Clock, Trash2 } from "lucide-react";
 import ProjectInvoiceSection from "@/components/invoice/ProjectInvoiceSection";
+import ProjectChecklist from "@/components/project/ProjectChecklist";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const statusColors = {
   planning: "bg-yellow-100 text-yellow-800",
@@ -19,7 +21,8 @@ const statusColors = {
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { projects, clients, deleteProject } = useApp();
+  const { projects, clients, deleteProject, updateProject } = useApp();
+  const { t } = useLanguage();
 
   const project = projects.find(p => p.id === id);
   const client = clients.find(c => c.id === project?.clientId);
@@ -28,10 +31,10 @@ export default function ProjectDetails() {
     return (
       <div className="p-6">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Projeto não encontrado</h1>
-          <p className="text-muted-foreground mb-4">O projeto solicitado não existe ou foi removido.</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">{t('projects.projectNotFound')}</h1>
+          <p className="text-muted-foreground mb-4">{t('projects.projectNotFoundDesc')}</p>
           <Button onClick={() => navigate('/projects')}>
-            Voltar para Projetos
+            {t('projects.backToProjects')}
           </Button>
         </div>
       </div>
@@ -39,10 +42,14 @@ export default function ProjectDetails() {
   }
 
   const handleDelete = () => {
-    if (window.confirm('Tem certeza que deseja excluir este projeto?')) {
+    if (window.confirm(t('projects.confirmDelete'))) {
       deleteProject(project.id);
       navigate('/projects');
     }
+  };
+
+  const handleUpdateChecklist = (checklist: any[]) => {
+    updateProject(project.id, { checklist });
   };
 
   return (
@@ -56,7 +63,7 @@ export default function ProjectDetails() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
             <p className="text-muted-foreground">
-              Cliente: {client?.name || project.client}
+              {t('common.client')}: {client?.name || project.client}
             </p>
           </div>
         </div>
@@ -64,7 +71,7 @@ export default function ProjectDetails() {
           <Link to={`/projects/${project.id}/edit`}>
             <Button className="gap-2">
               <Edit className="h-4 w-4" />
-              Editar
+              {t('common.edit')}
             </Button>
           </Link>
           <Button variant="destructive" size="icon" onClick={handleDelete}>
@@ -79,11 +86,9 @@ export default function ProjectDetails() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Informações do Projeto</span>
+                <span>{t('projects.projectInfo')}</span>
                 <Badge className={statusColors[project.status]}>
-                  {project.status === "in-progress" ? "Em Andamento" :
-                   project.status === "planning" ? "Planejamento" :
-                   project.status === "completed" ? "Concluído" : "Pausado"}
+                  {t(`projects.status.${project.status.replace('-', '')}`)}
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -95,7 +100,7 @@ export default function ProjectDetails() {
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Progresso</span>
+                  <span>{t('projects.progress')}</span>
                   <span>{project.progress}%</span>
                 </div>
                 <Progress value={project.progress} className="h-2" />
@@ -105,7 +110,7 @@ export default function ProjectDetails() {
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">Data de Início</p>
+                    <p className="text-sm font-medium">{t('projects.startDate')}</p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(project.startDate).toLocaleDateString('pt-BR')}
                     </p>
@@ -115,7 +120,7 @@ export default function ProjectDetails() {
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">Data de Entrega</p>
+                    <p className="text-sm font-medium">{t('projects.dueDate')}</p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(project.dueDate).toLocaleDateString('pt-BR')}
                     </p>
@@ -126,26 +131,32 @@ export default function ProjectDetails() {
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <p className="text-sm font-medium">Equipe</p>
+                  <p className="text-sm font-medium">{t('projects.team')}</p>
                   <p className="text-sm text-muted-foreground">{project.team.join(", ")}</p>
                 </div>
               </div>
 
               {project.sidingType && (
                 <div>
-                  <p className="text-sm font-medium">Tipo de Revestimento</p>
+                  <p className="text-sm font-medium">{t('projects.sidingType')}</p>
                   <p className="text-sm text-muted-foreground">{project.sidingType}</p>
                 </div>
               )}
 
               {project.description && (
                 <div>
-                  <p className="text-sm font-medium">Descrição</p>
+                  <p className="text-sm font-medium">{t('projects.description')}</p>
                   <p className="text-sm text-muted-foreground">{project.description}</p>
                 </div>
               )}
             </CardContent>
           </Card>
+
+          {/* Checklist Section */}
+          <ProjectChecklist 
+            checklist={project.checklist || []}
+            onUpdateChecklist={handleUpdateChecklist}
+          />
 
           {/* Invoice Documents Section */}
           <ProjectInvoiceSection projectId={project.id} />
@@ -157,21 +168,21 @@ export default function ProjectDetails() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5" />
-                Financeiro
+                {t('financial.title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm">Orçamento Total</span>
+                  <span className="text-sm">{t('projects.totalBudget')}</span>
                   <span className="font-medium">R$ {project.budget.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Gasto até agora</span>
+                  <span className="text-sm">{t('projects.spentSoFar')}</span>
                   <span className="font-medium">R$ {project.spent.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm">Restante</span>
+                  <span className="text-sm">{t('projects.remaining')}</span>
                   <span className="font-medium text-green-600">
                     R$ {(project.budget - project.spent).toLocaleString()}
                   </span>
@@ -180,7 +191,7 @@ export default function ProjectDetails() {
               <Separator />
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Progresso Financeiro</span>
+                  <span>{t('projects.financialProgress')}</span>
                   <span>{Math.round((project.spent / project.budget) * 100)}%</span>
                 </div>
                 <Progress value={(project.spent / project.budget) * 100} className="h-2" />
@@ -190,7 +201,7 @@ export default function ProjectDetails() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Informações do Cliente</CardTitle>
+              <CardTitle>{t('projects.clientInfo')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <div>
@@ -205,7 +216,7 @@ export default function ProjectDetails() {
               {client && (
                 <Link to={`/clients/${client.id}`}>
                   <Button variant="outline" size="sm" className="w-full">
-                    Ver Perfil do Cliente
+                    {t('projects.viewClientProfile')}
                   </Button>
                 </Link>
               )}

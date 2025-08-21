@@ -40,13 +40,41 @@ const translations = {
     'dashboard.recentActivity': 'Atividades Recentes',
 
     // Projects
+    'projects.title': 'Projetos',
     'projects.status.planning': 'Planejamento',
-    'projects.status.in-progress': 'Em Andamento',
+    'projects.status.inprogress': 'Em Andamento',
     'projects.status.completed': 'Concluído',
-    'projects.status.on-hold': 'Pausado',
+    'projects.status.onhold': 'Pausado',
     'projects.progress': 'Progresso',
+    'projects.newProject': 'Novo Projeto',
+    'projects.editProject': 'Editar Projeto',
+    'projects.projectName': 'Nome do Projeto',
+    'projects.selectClient': 'Selecionar Cliente',
+    'projects.budget': 'Orçamento',
+    'projects.dueDate': 'Data de Entrega',
+    'projects.selectStatus': 'Selecionar Status',
+    'projects.description': 'Descrição',
+    'projects.createProject': 'Criar Projeto',
+    'projects.projectInfo': 'Informações do Projeto',
+    'projects.startDate': 'Data de Início',
+    'projects.team': 'Equipe',
+    'projects.sidingType': 'Tipo de Revestimento',
+    'projects.totalBudget': 'Orçamento Total',
+    'projects.spentSoFar': 'Gasto até agora',
+    'projects.remaining': 'Restante',
+    'projects.financialProgress': 'Progresso Financeiro',
+    'projects.clientInfo': 'Informações do Cliente',
+    'projects.viewClientProfile': 'Ver Perfil do Cliente',
+    'projects.projectNotFound': 'Projeto não encontrado',
+    'projects.projectNotFoundDesc': 'O projeto solicitado não existe ou foi removido.',
+    'projects.backToProjects': 'Voltar para Projetos',
+    'projects.confirmDelete': 'Tem certeza que deseja excluir este projeto?',
+    'projects.createProjectDesc': 'Preencha as informações para criar um novo projeto',
+    'projects.editProjectDesc': 'Edite as informações do projeto',
+    'projects.descriptionPlaceholder': 'Descreva os detalhes e especificações do projeto...',
 
     // Financial
+    'financial.title': 'Financeiro',
     'financial.monthlyRevenue': 'Receita Mensal',
     'financial.monthlyExpenses': 'Despesas Mensais',
     'financial.netProfit': 'Lucro Líquido',
@@ -67,32 +95,25 @@ const translations = {
     'financial.documents': 'Notas Fiscais',
     'financial.expenses': 'Despesas',
     'financial.reports': 'Relatórios',
-    'financial.recentInvoices': 'Faturas Recentes',
-    'financial.recentInvoicesDesc': 'Suas últimas faturas e status de pagamento',
-    'financial.paid': 'Pago',
-    'financial.sent': 'Enviado',
-    'financial.overdue': 'Atrasado',
-    'financial.draft': 'Rascunho',
-    'financial.dueDate': 'Venc',
-    'financial.noInvoices': 'Nenhuma fatura encontrada',
-    'financial.cashFlow': 'Fluxo de Caixa',
-    'financial.cashFlowDesc': 'Entradas e saídas dos últimos 6 meses',
-    'financial.chartPlaceholder': 'Gráfico de fluxo de caixa será implementado',
-    'financial.invoiceManagement': 'Gestão de Faturas',
-    'financial.invoiceManagementDesc': 'Controle completo de faturamento e recebimentos',
-    'financial.invoiceModule': 'Módulo de Faturas',
-    'financial.invoiceModuleDesc': 'Sistema completo de gestão de faturas será implementado aqui',
-    'financial.documentsDesc': 'Documentos fiscais anexados aos projetos',
-    'financial.filterByProject': 'Filtrar por projeto',
-    'financial.allProjects': 'Todos os Projetos',
-    'financial.expenseControl': 'Controle de Despesas',
-    'financial.expenseControlDesc': 'Registre e categorize todas as despesas do projeto',
-    'financial.expenseModule': 'Módulo de Despesas',
-    'financial.expenseModuleDesc': 'Sistema de controle de despesas será implementado aqui',
-    'financial.financialReports': 'Relatórios Financeiros',
-    'financial.financialReportsDesc': 'Análises detalhadas de performance financeira',
-    'financial.advancedReports': 'Relatórios Avançados',
-    'financial.advancedReportsDesc': 'Relatórios detalhados de receitas, despesas e lucros',
+
+    // Clients
+    'clients.title': 'Clientes',
+    'clients.newClient': 'Novo Cliente',
+
+    // Teams
+    'teams.title': 'Equipes',
+
+    // Quotes
+    'quotes.title': 'Orçamentos',
+
+    // Reports
+    'reports.title': 'Relatórios',
+
+    // Map
+    'map.title': 'Mapa',
+
+    // Backup
+    'backup.title': 'Backup',
 
     // Settings
     'settings.title': 'Configurações',
@@ -108,12 +129,6 @@ const translations = {
     'settings.company.subtitle': 'Configure os dados da sua empresa',
     'settings.company.name': 'Nome da Empresa',
     'settings.company.cnpj': 'CNPJ',
-    'settings.features.core': 'Recursos Principais',
-    'settings.features.management': 'Gestão',
-    'settings.features.tools': 'Ferramentas',
-    'settings.features.configure': 'Configure quais recursos estão ativos',
-    'settings.features.active': 'Ativo',
-    'settings.features.inactive': 'Inativo',
     'settings.language.title': 'Configurações de Idioma',
     'settings.language.subtitle': 'Escolha o idioma do sistema',
     'settings.language.portuguese': 'Português',
@@ -136,6 +151,10 @@ const translations = {
     'common.loading': 'Carregando...',
     'common.error': 'Erro',
     'common.success': 'Sucesso',
+    'common.client': 'Cliente',
+    'common.status': 'Status',
+    'common.optional': 'opcional',
+    'common.saveChanges': 'Salvar Alterações',
   },
   en: {
     // Navigation
@@ -167,13 +186,41 @@ const translations = {
     'dashboard.recentActivity': 'Recent Activity',
 
     // Projects
+    'projects.title': 'Projects',
     'projects.status.planning': 'Planning',
-    'projects.status.in-progress': 'In Progress',
+    'projects.status.inprogress': 'In Progress',
     'projects.status.completed': 'Completed',
-    'projects.status.on-hold': 'On Hold',
+    'projects.status.onhold': 'On Hold',
     'projects.progress': 'Progress',
+    'projects.newProject': 'New Project',
+    'projects.editProject': 'Edit Project',
+    'projects.projectName': 'Project Name',
+    'projects.selectClient': 'Select Client',
+    'projects.budget': 'Budget',
+    'projects.dueDate': 'Due Date',
+    'projects.selectStatus': 'Select Status',
+    'projects.description': 'Description',
+    'projects.createProject': 'Create Project',
+    'projects.projectInfo': 'Project Information',
+    'projects.startDate': 'Start Date',
+    'projects.team': 'Team',
+    'projects.sidingType': 'Siding Type',
+    'projects.totalBudget': 'Total Budget',
+    'projects.spentSoFar': 'Spent So Far',
+    'projects.remaining': 'Remaining',
+    'projects.financialProgress': 'Financial Progress',
+    'projects.clientInfo': 'Client Information',
+    'projects.viewClientProfile': 'View Client Profile',
+    'projects.projectNotFound': 'Project not found',
+    'projects.projectNotFoundDesc': 'The requested project does not exist or has been removed.',
+    'projects.backToProjects': 'Back to Projects',
+    'projects.confirmDelete': 'Are you sure you want to delete this project?',
+    'projects.createProjectDesc': 'Fill in the information to create a new project',
+    'projects.editProjectDesc': 'Edit the project information',
+    'projects.descriptionPlaceholder': 'Describe the project details and specifications...',
 
     // Financial
+    'financial.title': 'Financial',
     'financial.monthlyRevenue': 'Monthly Revenue',
     'financial.monthlyExpenses': 'Monthly Expenses',
     'financial.netProfit': 'Net Profit',
@@ -194,32 +241,25 @@ const translations = {
     'financial.documents': 'Documents',
     'financial.expenses': 'Expenses',
     'financial.reports': 'Reports',
-    'financial.recentInvoices': 'Recent Invoices',
-    'financial.recentInvoicesDesc': 'Your latest invoices and payment status',
-    'financial.paid': 'Paid',
-    'financial.sent': 'Sent',
-    'financial.overdue': 'Overdue',
-    'financial.draft': 'Draft',
-    'financial.dueDate': 'Due',
-    'financial.noInvoices': 'No invoices found',
-    'financial.cashFlow': 'Cash Flow',
-    'financial.cashFlowDesc': 'Income and expenses from the last 6 months',
-    'financial.chartPlaceholder': 'Cash flow chart will be implemented',
-    'financial.invoiceManagement': 'Invoice Management',
-    'financial.invoiceManagementDesc': 'Complete billing and collection control',
-    'financial.invoiceModule': 'Invoice Module',
-    'financial.invoiceModuleDesc': 'Complete invoice management system will be implemented here',
-    'financial.documentsDesc': 'Tax documents attached to projects',
-    'financial.filterByProject': 'Filter by project',
-    'financial.allProjects': 'All Projects',
-    'financial.expenseControl': 'Expense Control',
-    'financial.expenseControlDesc': 'Record and categorize all project expenses',
-    'financial.expenseModule': 'Expense Module',
-    'financial.expenseModuleDesc': 'Expense control system will be implemented here',
-    'financial.financialReports': 'Financial Reports',
-    'financial.financialReportsDesc': 'Detailed financial performance analysis',
-    'financial.advancedReports': 'Advanced Reports',
-    'financial.advancedReportsDesc': 'Detailed reports on revenue, expenses and profits',
+
+    // Clients
+    'clients.title': 'Clients',
+    'clients.newClient': 'New Client',
+
+    // Teams
+    'teams.title': 'Teams',
+
+    // Quotes
+    'quotes.title': 'Quotes',
+
+    // Reports
+    'reports.title': 'Reports',
+
+    // Map
+    'map.title': 'Map',
+
+    // Backup
+    'backup.title': 'Backup',
 
     // Settings
     'settings.title': 'Settings',
@@ -235,12 +275,6 @@ const translations = {
     'settings.company.subtitle': 'Configure your company data',
     'settings.company.name': 'Company Name',
     'settings.company.cnpj': 'Tax ID',
-    'settings.features.core': 'Core Features',
-    'settings.features.management': 'Management',
-    'settings.features.tools': 'Tools',
-    'settings.features.configure': 'Configure which features are active',
-    'settings.features.active': 'Active',
-    'settings.features.inactive': 'Inactive',
     'settings.language.title': 'Language Settings',
     'settings.language.subtitle': 'Choose the system language',
     'settings.language.portuguese': 'Português',
@@ -263,6 +297,10 @@ const translations = {
     'common.loading': 'Loading...',
     'common.error': 'Error',
     'common.success': 'Success',
+    'common.client': 'Client',
+    'common.status': 'Status',
+    'common.optional': 'optional',
+    'common.saveChanges': 'Save Changes',
   },
 };
 
@@ -275,18 +313,36 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   });
 
   const setLanguage = (lang: Language) => {
+    console.log('Changing language to:', lang);
     setLanguageState(lang);
     localStorage.setItem('language', lang);
+    
+    // Force a complete re-render by dispatching a custom event
+    window.dispatchEvent(new CustomEvent('languageChanged', { detail: lang }));
   };
 
   const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations[Language]] || key;
+    const translation = translations[language][key as keyof typeof translations[Language]];
+    if (!translation) {
+      console.warn(`Translation missing for key: ${key} in language: ${language}`);
+      return key;
+    }
+    return translation;
   };
 
+  // Listen for language changes to force re-render
   useEffect(() => {
-    // Force re-render when language changes
-    console.log('Language changed to:', language);
-  }, [language]);
+    const handleLanguageChange = (event: CustomEvent) => {
+      console.log('Language change event received:', event.detail);
+      // Force re-render by updating state
+      setLanguageState(event.detail);
+    };
+
+    window.addEventListener('languageChanged', handleLanguageChange as EventListener);
+    return () => {
+      window.removeEventListener('languageChanged', handleLanguageChange as EventListener);
+    };
+  }, []);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

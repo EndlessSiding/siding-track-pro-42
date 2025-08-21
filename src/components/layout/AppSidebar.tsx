@@ -26,63 +26,64 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useLogo } from "@/hooks/useLogo"
-
-// Menu items.
-const items = [
-  {
-    title: "Dashboard",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Clientes",
-    url: "/clients",
-    icon: Users,
-  },
-  {
-    title: "Projetos",
-    url: "/projects",
-    icon: FolderOpen,
-  },
-  {
-    title: "Equipes",
-    url: "/teams",
-    icon: UserCheck,
-  },
-  {
-    title: "Orçamentos",
-    url: "/quotes",
-    icon: DollarSign,
-  },
-  {
-    title: "Financeiro",
-    url: "/financial",
-    icon: Coins, // Changed from BarChart3 to Coins
-  },
-  {
-    title: "Relatórios",
-    url: "/reports",
-    icon: BarChart3,
-  },
-  {
-    title: "Mapa",
-    url: "/map",
-    icon: MapPin,
-  },
-  {
-    title: "Backup",
-    url: "/backup",
-    icon: Database,
-  },
-  {
-    title: "Configurações",
-    url: "/settings",
-    icon: Settings,
-  },
-]
+import { useLanguage } from "@/contexts/LanguageContext"
 
 export function AppSidebar() {
   const { currentLogo, hasLogo } = useLogo()
+  const { t } = useLanguage()
+
+  const items = [
+    {
+      title: t('nav.dashboard'),
+      url: "/",
+      icon: Home,
+    },
+    {
+      title: t('nav.clients'),
+      url: "/clients",
+      icon: Users,
+    },
+    {
+      title: t('nav.projects'),
+      url: "/projects",
+      icon: FolderOpen,
+    },
+    {
+      title: t('nav.teams'),
+      url: "/teams",
+      icon: UserCheck,
+    },
+    {
+      title: t('nav.quotes'),
+      url: "/quotes",
+      icon: DollarSign,
+    },
+    {
+      title: t('nav.financial'),
+      url: "/financial",
+      icon: Coins,
+    },
+    {
+      title: t('nav.reports'),
+      url: "/reports",
+      icon: BarChart3,
+    },
+    {
+      title: t('nav.map'),
+      url: "/map",
+      icon: MapPin,
+    },
+    {
+      title: t('nav.backup'),
+      url: "/backup",
+      icon: Database,
+    },
+    {
+      title: t('nav.settings'),
+      url: "/settings",
+      icon: Settings,
+    },
+  ]
 
   return (
     <Sidebar>

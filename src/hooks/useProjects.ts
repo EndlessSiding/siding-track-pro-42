@@ -2,12 +2,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Project } from "@/types/project";
+import { Project, ProjectChecklistItem } from "@/types/project";
 
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+
+  const calculateProgressFromChecklist = (checklist: ProjectChecklistItem[]): number => {
+    if (!checklist || checklist.length === 0) return 0;
+    const completed = checklist.filter(item => item.completed).length;
+    return Math.round((completed / checklist.length) * 100);
+  };
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -19,21 +25,27 @@ export const useProjects = () => {
 
       if (error) throw error;
 
-      const mappedProjects: Project[] = (data || []).map(project => ({
-        id: project.id,
-        name: project.name || '',
-        client: project.client_name || '',
-        clientId: project.client_id || '',
-        address: project.address || '',
-        status: project.status as "planning" | "in-progress" | "completed" | "on-hold",
-        progress: Number(project.progress) || 0,
-        budget: Number(project.budget) || 0,
-        spent: Number(project.spent) || 0,
-        dueDate: project.due_date || '',
-        startDate: project.start_date || '',
-        team: Array.isArray(project.team) ? project.team : [],
-        sidingType: project.siding_type || undefined,
-      }));
+      const mappedProjects: Project[] = (data || []).map(project => {
+        const checklist = Array.isArray(project.checklist) ? project.checklist : [];
+        const calculatedProgress = calculateProgressFromChecklist(checklist);
+        
+        return {
+          id: project.id,
+          name: project.name || '',
+          client: project.client_name || '',
+          clientId: project.client_id || '',
+          address: project.address || '',
+          status: project.status as "planning" | "in-progress" | "completed" | "on-hold",
+          progress: calculatedProgress, // Usa o progresso calculado do checklist
+          budget: Number(project.budget) || 0,
+          spent: Number(project.spent) || 0,
+          dueDate: project.due_date || '',
+          startDate: project.start_date || '',
+          team: Array.isArray(project.team) ? project.team : [],
+          sidingType: project.siding_type || undefined,
+          checklist: checklist,
+        };
+      });
 
       setProjects(mappedProjects);
     } catch (error) {
@@ -50,6 +62,9 @@ export const useProjects = () => {
 
   const addProject = useCallback(async (projectData: Omit<Project, 'id'>) => {
     try {
+      const checklist = projectData.checklist || [];
+      const calculatedProgress = calculateProgressFromChecklist(checklist);
+
       const { data, error } = await supabase
         .from('projects')
         .insert({
@@ -58,13 +73,14 @@ export const useProjects = () => {
           client_id: projectData.clientId,
           address: projectData.address,
           status: projectData.status,
-          progress: projectData.progress,
+          progress: calculatedProgress,
           budget: projectData.budget,
           spent: projectData.spent,
           due_date: projectData.dueDate,
           start_date: projectData.startDate,
           team: projectData.team,
           siding_type: projectData.sidingType,
+          checklist: checklist,
         })
         .select()
         .single();
@@ -78,13 +94,14 @@ export const useProjects = () => {
         clientId: data.client_id || '',
         address: data.address || '',
         status: data.status as "planning" | "in-progress" | "completed" | "on-hold",
-        progress: Number(data.progress) || 0,
+        progress: calculatedProgress,
         budget: Number(data.budget) || 0,
         spent: Number(data.spent) || 0,
         dueDate: data.due_date || '',
         startDate: data.start_date || '',
         team: Array.isArray(data.team) ? data.team : [],
         sidingType: data.siding_type || undefined,
+        checklist: checklist,
       };
 
       setProjects(prev => [newProject, ...prev]);
@@ -111,13 +128,20 @@ export const useProjects = () => {
       if (projectData.clientId !== undefined) updateData.client_id = projectData.clientId;
       if (projectData.address !== undefined) updateData.address = projectData.address;
       if (projectData.status !== undefined) updateData.status = projectData.status;
-      if (projectData.progress !== undefined) updateData.progress = projectData.progress;
       if (projectData.budget !== undefined) updateData.budget = projectData.budget;
       if (projectData.spent !== undefined) updateData.spent = projectData.spent;
       if (projectData.dueDate !== undefined) updateData.due_date = projectData.dueDate;
       if (projectData.startDate !== undefined) updateData.start_date = projectData.startDate;
       if (projectData.team !== undefined) updateData.team = projectData.team;
       if (projectData.sidingType !== undefined) updateData.siding_type = projectData.sidingType;
+      
+      // Atualiza checklist e calcula progresso automaticamente
+      if (projectData.checklist !== undefined) {
+        updateData.checklist = projectData.checklist;
+        const calculatedProgress = calculateProgressFromChecklist(projectData.checklist);
+        updateData.progress = calculatedProgress;
+        projectData.progress = calculatedProgress; // Atualiza também no estado local
+      }
 
       const { error } = await supabase
         .from('projects')
@@ -151,7 +175,6 @@ export const useProjects = () => {
         .delete()
         .eq('id', id);
 
-      // Fix: add parentheses to the if statement
       if (error) throw error;
 
       setProjects(prev => prev.filter(project => project.id !== id));
@@ -170,7 +193,6 @@ export const useProjects = () => {
     }
   }, [toast]);
 
-  // useEffect should always be called in the same order
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
