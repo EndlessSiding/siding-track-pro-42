@@ -151,7 +151,8 @@ export const useProjects = () => {
         .delete()
         .eq('id', id);
 
-      if error throw error;
+      // Fix: add parentheses to the if statement
+      if (error) throw error;
 
       setProjects(prev => prev.filter(project => project.id !== id));
 
