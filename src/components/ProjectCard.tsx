@@ -8,6 +8,7 @@ import { Project } from "@/types/project";
 import { useApp } from "@/contexts/AppContext";
 import { useState } from "react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
 import ProjectForm from "@/components/forms/ProjectForm";
 
 interface ProjectCardProps {
@@ -18,6 +19,7 @@ interface ProjectCardProps {
 const ProjectCard = ({ project, detailed = false }: ProjectCardProps) => {
   const { updateProject, deleteProject } = useApp();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -50,8 +52,12 @@ const ProjectCard = ({ project, detailed = false }: ProjectCardProps) => {
     }
   };
 
+  const handleViewDetails = () => {
+    navigate(`/projects/${project.id}`);
+  };
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-lg transition-all duration-200">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <CardTitle className="text-lg font-semibold line-clamp-1">{project.name}</CardTitle>
@@ -62,16 +68,16 @@ const ProjectCard = ({ project, detailed = false }: ProjectCardProps) => {
         {detailed && (
           <div className="space-y-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
+              <MapPin className="h-4 w-4 flex-shrink-0" />
               <span className="line-clamp-1">{project.address}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
+              <Users className="h-4 w-4 flex-shrink-0" />
               <span>{project.client}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>Prazo: {new Date(project.dueDate).toLocaleDateString()}</span>
+              <Calendar className="h-4 w-4 flex-shrink-0" />
+              <span>Prazo: {new Date(project.dueDate).toLocaleDateString('pt-BR')}</span>
             </div>
           </div>
         )}
@@ -89,15 +95,15 @@ const ProjectCard = ({ project, detailed = false }: ProjectCardProps) => {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Orçamento</p>
-            <p className="font-medium">R$ {project.budget.toLocaleString()}</p>
+            <p className="font-medium">R$ {project.budget.toLocaleString('pt-BR')}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Gasto</p>
-            <p className="font-medium">R$ {project.spent.toLocaleString()}</p>
+            <p className="font-medium">R$ {project.spent.toLocaleString('pt-BR')}</p>
           </div>
         </div>
 
-        {detailed && (
+        {detailed && project.sidingType && (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">Tipo de Revestimento</p>
             <Badge variant="outline">{project.sidingType}</Badge>
@@ -106,7 +112,12 @@ const ProjectCard = ({ project, detailed = false }: ProjectCardProps) => {
       </CardContent>
 
       <CardFooter className="flex gap-2">
-        <Button variant="outline" size="sm" className="flex-1">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex-1"
+          onClick={handleViewDetails}
+        >
           <Eye className="h-4 w-4 mr-2" />
           Ver Detalhes
         </Button>
@@ -128,7 +139,7 @@ const ProjectCard = ({ project, detailed = false }: ProjectCardProps) => {
           variant="outline" 
           size="sm" 
           onClick={handleDelete}
-          className="text-destructive hover:text-destructive"
+          className="text-destructive hover:text-destructive hover:bg-destructive/10"
         >
           <Trash2 className="h-4 w-4" />
         </Button>

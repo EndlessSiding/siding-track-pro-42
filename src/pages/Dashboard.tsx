@@ -29,7 +29,7 @@ import { useMobileDetection } from "@/hooks/use-mobile-detection";
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
-  const { projects, addProject } = useApp();
+  const { projects, clients, addProject } = useApp();
   const { isMobile } = useMobileDetection();
 
   const handleCreateProject = (projectData: any) => {
@@ -37,31 +37,39 @@ const Dashboard = () => {
     setIsProjectDialogOpen(false);
   };
 
+  // Calculate real metrics from data
+  const activeProjects = projects.filter(p => p.status === "in-progress").length;
+  const totalClients = clients.length;
+  const totalRevenue = projects.reduce((sum, p) => sum + p.budget, 0);
+  const completedProjects = projects.filter(p => p.status === "completed").length;
+  const totalProjects = projects.length;
+  const completionRate = totalProjects > 0 ? Math.round((completedProjects / totalProjects) * 100) : 0;
+
   const metrics = [
     {
       title: "Projetos Ativos",
-      value: projects.filter(p => p.status === "in-progress").length.toString(),
+      value: activeProjects.toString(),
       change: "+2 este mês",
       icon: Building2,
       color: "blue" as const
     },
     {
       title: "Total de Clientes",
-      value: "45",
+      value: totalClients.toString(),
       change: "+5 este mês", 
       icon: Users,
       color: "green" as const
     },
     {
       title: "Receita do Mês",
-      value: isMobile ? "R$ 84K" : "R$ 84.250",
+      value: isMobile ? `R$ ${Math.round(totalRevenue/1000)}K` : `R$ ${totalRevenue.toLocaleString()}`,
       change: "+12% vs mês anterior",
       icon: DollarSign,
       color: "purple" as const
     },
     {
       title: "Taxa de Conclusão",
-      value: "94%",
+      value: `${completionRate}%`,
       change: "+3% vs mês anterior",
       icon: Target,
       color: "orange" as const
@@ -72,11 +80,11 @@ const Dashboard = () => {
     { label: "Concluídos", value: projects.filter(p => p.status === "completed").length, icon: CheckCircle, color: "text-green-600" },
     { label: "Em Andamento", value: projects.filter(p => p.status === "in-progress").length, icon: Activity, color: "text-blue-600" },
     { label: "Planejamento", value: projects.filter(p => p.status === "planning").length, icon: Clock, color: "text-yellow-600" },
-    { label: "Atrasados", value: 2, icon: AlertCircle, color: "text-red-600" }
+    { label: "Atrasados", value: projects.filter(p => p.status === "on-hold").length, icon: AlertCircle, color: "text-red-600" }
   ];
 
   return (
-    <div className="w-full h-full space-y-4">
+    <div className={`w-full h-full ${isMobile ? 'p-4' : 'p-6'} space-y-6`}>
       {/* Header */}
       <div className="space-y-2">
         <h1 className={`font-bold tracking-tight ${isMobile ? 'text-2xl' : 'text-3xl'}`}>
@@ -93,18 +101,18 @@ const Dashboard = () => {
       {!isMobile && <QuickActions />}
 
       {/* Quick Stats */}
-      <div className={`grid gap-3 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
         {quickStats.map((stat, index) => (
-          <ModernCard key={stat.label} className="p-3">
-            <div className="flex items-center gap-2">
-              <div className={`p-1.5 rounded-lg bg-muted ${stat.color} flex-shrink-0`}>
-                <stat.icon className={isMobile ? "h-3 w-3" : "h-4 w-4"} />
+          <ModernCard key={stat.label} className="p-4">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg bg-muted ${stat.color} flex-shrink-0`}>
+                <stat.icon className={isMobile ? "h-4 w-4" : "h-5 w-5"} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className={`font-semibold ${isMobile ? 'text-sm' : 'text-xl'}`}>
+                <p className={`font-semibold ${isMobile ? 'text-lg' : 'text-2xl'}`}>
                   {stat.value}
                 </p>
-                <p className={`text-muted-foreground truncate ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                <p className={`text-muted-foreground truncate ${isMobile ? 'text-xs' : 'text-sm'}`}>
                   {stat.label}
                 </p>
               </div>
@@ -114,7 +122,7 @@ const Dashboard = () => {
       </div>
 
       {/* Metrics Grid */}
-      <div className={`grid gap-3 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
+      <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
         {metrics.map((metric, index) => (
           isMobile ? (
             <MetricCardMobile key={index} {...metric} />
@@ -126,7 +134,7 @@ const Dashboard = () => {
 
       {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className={`grid w-full mb-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
+        <TabsList className={`grid w-full mb-6 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
           <TabsTrigger value="overview" className={isMobile ? "text-xs" : ""}>
             {isMobile ? "Resumo" : "Overview"}
           </TabsTrigger>
@@ -142,7 +150,7 @@ const Dashboard = () => {
         </TabsList>
 
         <TabsContent value="overview" className="w-full">
-          <div className={`grid gap-4 w-full ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'}`}>
+          <div className={`grid gap-6 w-full ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'}`}>
             <ModernCard className={isMobile ? "" : "lg:col-span-2"}>
               <ModernCardHeader>
                 <ModernCardTitle className="flex items-center gap-2">
@@ -156,7 +164,7 @@ const Dashboard = () => {
                 )}
               </ModernCardHeader>
               <ModernCardContent>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {projects.slice(0, isMobile ? 2 : 3).map((project) => (
                     <ProjectCard key={project.id} project={project} />
                   ))}
@@ -187,7 +195,7 @@ const Dashboard = () => {
             </Dialog>
           </div>
           
-          <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'}`}>
+          <div className={`grid gap-6 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'}`}>
             {projects.map((project) => (
               <ProjectCard key={project.id} project={project} detailed />
             ))}

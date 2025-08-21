@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Project } from "@/types/project";
@@ -9,7 +9,7 @@ export const useProjects = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
@@ -21,13 +21,13 @@ export const useProjects = () => {
 
       const mappedProjects: Project[] = (data || []).map(project => ({
         id: project.id,
-        name: project.name,
-        client: project.client_name,
+        name: project.name || '',
+        client: project.client_name || '',
         clientId: project.client_id || '',
-        address: project.address,
+        address: project.address || '',
         status: project.status as "planning" | "in-progress" | "completed" | "on-hold",
-        progress: project.progress || 0,
-        budget: Number(project.budget),
+        progress: Number(project.progress) || 0,
+        budget: Number(project.budget) || 0,
         spent: Number(project.spent) || 0,
         dueDate: project.due_date || '',
         startDate: project.start_date || '',
@@ -46,9 +46,9 @@ export const useProjects = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
-  const addProject = async (projectData: Omit<Project, 'id'>) => {
+  const addProject = useCallback(async (projectData: Omit<Project, 'id'>) => {
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -73,13 +73,13 @@ export const useProjects = () => {
 
       const newProject: Project = {
         id: data.id,
-        name: data.name,
-        client: data.client_name,
+        name: data.name || '',
+        client: data.client_name || '',
         clientId: data.client_id || '',
-        address: data.address,
+        address: data.address || '',
         status: data.status as "planning" | "in-progress" | "completed" | "on-hold",
-        progress: data.progress || 0,
-        budget: Number(data.budget),
+        progress: Number(data.progress) || 0,
+        budget: Number(data.budget) || 0,
         spent: Number(data.spent) || 0,
         dueDate: data.due_date || '',
         startDate: data.start_date || '',
@@ -101,26 +101,27 @@ export const useProjects = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
-  const updateProject = async (id: string, projectData: Partial<Project>) => {
+  const updateProject = useCallback(async (id: string, projectData: Partial<Project>) => {
     try {
+      const updateData: any = {};
+      if (projectData.name !== undefined) updateData.name = projectData.name;
+      if (projectData.client !== undefined) updateData.client_name = projectData.client;
+      if (projectData.clientId !== undefined) updateData.client_id = projectData.clientId;
+      if (projectData.address !== undefined) updateData.address = projectData.address;
+      if (projectData.status !== undefined) updateData.status = projectData.status;
+      if (projectData.progress !== undefined) updateData.progress = projectData.progress;
+      if (projectData.budget !== undefined) updateData.budget = projectData.budget;
+      if (projectData.spent !== undefined) updateData.spent = projectData.spent;
+      if (projectData.dueDate !== undefined) updateData.due_date = projectData.dueDate;
+      if (projectData.startDate !== undefined) updateData.start_date = projectData.startDate;
+      if (projectData.team !== undefined) updateData.team = projectData.team;
+      if (projectData.sidingType !== undefined) updateData.siding_type = projectData.sidingType;
+
       const { error } = await supabase
         .from('projects')
-        .update({
-          name: projectData.name,
-          client_name: projectData.client,
-          client_id: projectData.clientId,
-          address: projectData.address,
-          status: projectData.status,
-          progress: projectData.progress,
-          budget: projectData.budget,
-          spent: projectData.spent,
-          due_date: projectData.dueDate,
-          start_date: projectData.startDate,
-          team: projectData.team,
-          siding_type: projectData.sidingType,
-        })
+        .update(updateData)
         .eq('id', id);
 
       if (error) throw error;
@@ -141,9 +142,9 @@ export const useProjects = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
-  const deleteProject = async (id: string) => {
+  const deleteProject = useCallback(async (id: string) => {
     try {
       const { error } = await supabase
         .from('projects')
@@ -166,11 +167,11 @@ export const useProjects = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [fetchProjects]);
 
   return {
     projects,
