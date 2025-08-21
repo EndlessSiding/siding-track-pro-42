@@ -45,13 +45,20 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  // Always call all hooks in the same order
+  const clientsHook = useClients();
+  const projectsHook = useProjects();
+  const teamsHook = useTeams();
+  const quotesHook = useQuotes();
+
+  // Extract values after all hooks are called
   const {
     clients,
     isLoading: clientsLoading,
     addClient,
     updateClient,
     deleteClient,
-  } = useClients();
+  } = clientsHook;
 
   const {
     projects,
@@ -59,7 +66,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addProject,
     updateProject,
     deleteProject,
-  } = useProjects();
+  } = projectsHook;
 
   const {
     teams,
@@ -67,7 +74,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addTeam,
     updateTeam,
     deleteTeam,
-  } = useTeams();
+  } = teamsHook;
 
   const {
     quotes,
@@ -75,30 +82,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addQuote,
     updateQuote,
     deleteQuote,
-  } = useQuotes();
+  } = quotesHook;
 
   const isLoading = clientsLoading || projectsLoading || teamsLoading || quotesLoading;
 
+  const contextValue: AppContextType = {
+    projects,
+    clients,
+    teams,
+    quotes,
+    isLoading,
+    addProject,
+    updateProject,
+    deleteProject,
+    addClient,
+    updateClient,
+    deleteClient,
+    addTeam,
+    updateTeam,
+    deleteTeam,
+    addQuote,
+    updateQuote,
+    deleteQuote,
+  };
+
   return (
-    <AppContext.Provider value={{
-      projects,
-      clients,
-      teams,
-      quotes,
-      isLoading,
-      addProject,
-      updateProject,
-      deleteProject,
-      addClient,
-      updateClient,
-      deleteClient,
-      addTeam,
-      updateTeam,
-      deleteTeam,
-      addQuote,
-      updateQuote,
-      deleteQuote,
-    }}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );

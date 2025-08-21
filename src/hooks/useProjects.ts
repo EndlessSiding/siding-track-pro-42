@@ -151,7 +151,7 @@ export const useProjects = () => {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if error throw error;
 
       setProjects(prev => prev.filter(project => project.id !== id));
 
@@ -169,6 +169,7 @@ export const useProjects = () => {
     }
   }, [toast]);
 
+  // useEffect should always be called in the same order
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
