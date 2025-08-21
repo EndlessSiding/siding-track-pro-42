@@ -10,7 +10,11 @@ export function Layout() {
   const { isMobile } = useMobileDetection();
 
   if (isMobile) {
-    return <MobileLayout />;
+    return (
+      <MobileLayout>
+        <Outlet />
+      </MobileLayout>
+    );
   }
 
   return (
