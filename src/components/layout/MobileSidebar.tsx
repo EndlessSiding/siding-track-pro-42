@@ -10,6 +10,7 @@ import {
   UserCheck,
   Database,
   Settings,
+  Coins,
 } from "lucide-react"
 import { useNavigate, useLocation } from "react-router-dom"
 
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/sidebar"
 import { useLogo } from "@/hooks/useLogo"
 import { cn } from "@/lib/utils"
+import { useSidebar } from "@/components/ui/sidebar"
 
 const items = [
   {
@@ -55,7 +57,7 @@ const items = [
   {
     title: "Financeiro",
     url: "/financial",
-    icon: BarChart3,
+    icon: Coins, // Changed from BarChart3 to Coins
   },
   {
     title: "Relatórios",
@@ -83,9 +85,12 @@ export function MobileSidebar() {
   const { currentLogo, hasLogo } = useLogo()
   const navigate = useNavigate()
   const location = useLocation()
+  const { setOpenMobile } = useSidebar()
 
   const handleNavigation = (url: string) => {
     navigate(url)
+    // Close sidebar after navigation on mobile
+    setOpenMobile(false)
   }
 
   return (

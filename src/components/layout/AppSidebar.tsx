@@ -12,6 +12,7 @@ import {
   MapPin,
   UserCheck,
   Database,
+  Coins,
 } from "lucide-react"
 
 import {
@@ -56,7 +57,7 @@ const items = [
   {
     title: "Financeiro",
     url: "/financial",
-    icon: BarChart3,
+    icon: Coins, // Changed from BarChart3 to Coins
   },
   {
     title: "Relatórios",

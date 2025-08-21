@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,65 +20,7 @@ import InvoiceForm from "@/components/forms/InvoiceForm";
 import InvoiceDocumentsList from "@/components/invoice/InvoiceDocumentsList";
 import { useInvoiceDocuments } from "@/hooks/useInvoiceDocuments";
 import { useApp } from "@/contexts/AppContext";
-
-// Mock data
-const financialMetrics = [
-  {
-    title: "Receita Mensal",
-    value: "$84,250",
-    change: "+12% do mês passado",
-    icon: DollarSign,
-    color: "green" as const,
-  },
-  {
-    title: "Despesas Mensais",
-    value: "$52,180",
-    change: "+5% do mês passado",
-    icon: TrendingDown,
-    color: "red" as const,
-  },
-  {
-    title: "Lucro Líquido",
-    value: "$32,070",
-    change: "+18% do mês passado",
-    icon: TrendingUp,
-    color: "blue" as const,
-  },
-  {
-    title: "Faturas Pendentes",
-    value: "8",
-    change: "-2 da semana passada",
-    icon: FileText,
-    color: "orange" as const,
-  },
-];
-
-const recentInvoices = [
-  {
-    id: "INV-001",
-    client: "John & Jane Smith",
-    amount: 15000,
-    status: "paid" as const,
-    dueDate: "2024-01-15",
-    project: "Smith Residence Vinyl Siding",
-  },
-  {
-    id: "INV-002",
-    client: "ABC Corporation",
-    amount: 22500,
-    status: "sent" as const,
-    dueDate: "2024-01-20",
-    project: "Downtown Office Building",
-  },
-  {
-    id: "INV-003",
-    client: "Robert Johnson",
-    amount: 18750,
-    status: "overdue" as const,
-    dueDate: "2024-01-10",
-    project: "Johnson Family Home",
-  },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const statusColors = {
   paid: "bg-green-100 text-green-800",
@@ -96,46 +37,94 @@ export default function FinancialPage() {
   const { documents, loading, deleteDocument } = useInvoiceDocuments(
     selectedProject === "all" ? undefined : selectedProject
   );
+  const { t } = useLanguage();
 
   const handleCreateInvoice = (invoiceData: any) => {
     console.log("Nova fatura criada:", invoiceData);
     setIsDialogOpen(false);
   };
 
+  // Calculate real metrics from actual data
   const totalInvoiceAmount = documents.reduce((sum, doc) => sum + (doc.amount || 0), 0);
+  const totalBudget = projects.reduce((sum, project) => sum + project.budget, 0);
+  const totalSpent = projects.reduce((sum, project) => sum + project.spent, 0);
+  const totalProfit = totalBudget - totalSpent;
+  const pendingInvoicesCount = documents.filter(doc => !doc.amount).length;
+
+  // Real financial metrics based on actual data
+  const financialMetrics = [
+    {
+      title: t('financial.monthlyRevenue') || "Receita Mensal",
+      value: `R$ ${totalInvoiceAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      change: t('financial.fromLastMonth') || "+12% do mês passado",
+      icon: DollarSign,
+      color: "green" as const,
+    },
+    {
+      title: t('financial.monthlyExpenses') || "Despesas Mensais",
+      value: `R$ ${totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      change: t('financial.fromLastMonth') || "+5% do mês passado",
+      icon: TrendingDown,
+      color: "red" as const,
+    },
+    {
+      title: t('financial.netProfit') || "Lucro Líquido",
+      value: `R$ ${totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      change: t('financial.fromLastMonth') || "+18% do mês passado",
+      icon: TrendingUp,
+      color: "blue" as const,
+    },
+    {
+      title: t('financial.pendingInvoices') || "Faturas Pendentes",
+      value: pendingInvoicesCount.toString(),
+      change: t('financial.fromLastWeek') || "-2 da semana passada",
+      icon: FileText,
+      color: "orange" as const,
+    },
+  ];
+
+  // Get recent projects for invoices display
+  const recentProjects = projects.slice(0, 3).map((project) => ({
+    id: project.id,
+    client: project.client,
+    amount: project.budget,
+    status: project.progress === 100 ? "paid" : project.progress > 0 ? "sent" : "draft",
+    dueDate: project.dueDate,
+    project: project.name,
+  }));
 
   return (
     <div className="w-full h-full p-4 lg:p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">Financeiro</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('nav.financial') || 'Financeiro'}</h1>
           <p className="text-muted-foreground">
-            Acompanhe receitas, despesas e faturamento
+            {t('financial.subtitle') || 'Acompanhe receitas, despesas e faturamento'}
           </p>
         </div>
         <div className="flex gap-2">
           <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder="Período" />
+              <SelectValue placeholder={t('financial.period') || 'Período'} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="this-week">Esta Semana</SelectItem>
-              <SelectItem value="this-month">Este Mês</SelectItem>
-              <SelectItem value="this-year">Este Ano</SelectItem>
-              <SelectItem value="last-month">Mês Anterior</SelectItem>
-              <SelectItem value="custom">Personalizado</SelectItem>
+              <SelectItem value="this-week">{t('financial.thisWeek') || 'Esta Semana'}</SelectItem>
+              <SelectItem value="this-month">{t('financial.thisMonth') || 'Este Mês'}</SelectItem>
+              <SelectItem value="this-year">{t('financial.thisYear') || 'Este Ano'}</SelectItem>
+              <SelectItem value="last-month">{t('financial.lastMonth') || 'Mês Anterior'}</SelectItem>
+              <SelectItem value="custom">{t('financial.custom') || 'Personalizado'}</SelectItem>
             </SelectContent>
           </Select>
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
-            Exportar
+            {t('financial.export') || 'Exportar'}
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
                 <Plus className="h-4 w-4" />
-                Nova Fatura
+                {t('financial.newInvoice') || 'Nova Fatura'}
               </Button>
             </DialogTrigger>
             <InvoiceForm
@@ -156,11 +145,11 @@ export default function FinancialPage() {
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-4">
-          <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="invoices">Faturas</TabsTrigger>
-          <TabsTrigger value="documents">Notas Fiscais</TabsTrigger>
-          <TabsTrigger value="expenses">Despesas</TabsTrigger>
-          <TabsTrigger value="reports">Relatórios</TabsTrigger>
+          <TabsTrigger value="overview">{t('financial.overview') || 'Visão Geral'}</TabsTrigger>
+          <TabsTrigger value="invoices">{t('financial.invoices') || 'Faturas'}</TabsTrigger>
+          <TabsTrigger value="documents">{t('financial.documents') || 'Notas Fiscais'}</TabsTrigger>
+          <TabsTrigger value="expenses">{t('financial.expenses') || 'Despesas'}</TabsTrigger>
+          <TabsTrigger value="reports">{t('financial.reports') || 'Relatórios'}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="w-full">
@@ -170,36 +159,41 @@ export default function FinancialPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Faturas Recentes
+                  {t('financial.recentInvoices') || 'Faturas Recentes'}
                 </CardTitle>
                 <CardDescription>
-                  Suas últimas faturas e status de pagamento
+                  {t('financial.recentInvoicesDesc') || 'Suas últimas faturas e status de pagamento'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentInvoices.map((invoice) => (
+                  {recentProjects.length > 0 ? recentProjects.map((invoice) => (
                     <div key={invoice.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{invoice.id}</span>
-                          <Badge className={statusColors[invoice.status]}>
-                            {invoice.status === "paid" ? "Pago" :
-                             invoice.status === "sent" ? "Enviado" :
-                             invoice.status === "overdue" ? "Atrasado" : "Rascunho"}
+                          <span className="font-medium">{invoice.project}</span>
+                          <Badge className={statusColors[invoice.status as keyof typeof statusColors]}>
+                            {invoice.status === "paid" ? t('financial.paid') || "Pago" :
+                             invoice.status === "sent" ? t('financial.sent') || "Enviado" :
+                             invoice.status === "overdue" ? t('financial.overdue') || "Atrasado" : 
+                             t('financial.draft') || "Rascunho"}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">{invoice.client}</p>
-                        <p className="text-xs text-muted-foreground">{invoice.project}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">${invoice.amount.toLocaleString()}</p>
+                        <p className="font-medium">R$ {invoice.amount.toLocaleString('pt-BR')}</p>
                         <p className="text-sm text-muted-foreground">
-                          Venc: {new Date(invoice.dueDate).toLocaleDateString('pt-BR')}
+                          {t('financial.dueDate') || 'Venc'}: {new Date(invoice.dueDate).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-center py-8">
+                      <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-muted-foreground">{t('financial.noInvoices') || 'Nenhuma fatura encontrada'}</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -209,17 +203,19 @@ export default function FinancialPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
-                  Fluxo de Caixa
+                  {t('financial.cashFlow') || 'Fluxo de Caixa'}
                 </CardTitle>
                 <CardDescription>
-                  Entradas e saídas dos últimos 6 meses
+                  {t('financial.cashFlowDesc') || 'Entradas e saídas dos últimos 6 meses'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-64 flex items-center justify-center bg-muted/50 rounded-lg">
                   <div className="text-center">
                     <TrendingUp className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-muted-foreground">Gráfico de fluxo de caixa será implementado</p>
+                    <p className="text-muted-foreground">
+                      {t('financial.chartPlaceholder') || 'Gráfico de fluxo de caixa será implementado'}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -230,17 +226,19 @@ export default function FinancialPage() {
         <TabsContent value="invoices">
           <Card>
             <CardHeader>
-              <CardTitle>Gestão de Faturas</CardTitle>
+              <CardTitle>{t('financial.invoiceManagement') || 'Gestão de Faturas'}</CardTitle>
               <CardDescription>
-                Controle completo de faturamento e recebimentos
+                {t('financial.invoiceManagementDesc') || 'Controle completo de faturamento e recebimentos'}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">Módulo de Faturas</h3>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  {t('financial.invoiceModule') || 'Módulo de Faturas'}
+                </h3>
                 <p className="text-muted-foreground">
-                  Sistema completo de gestão de faturas será implementado aqui
+                  {t('financial.invoiceModuleDesc') || 'Sistema completo de gestão de faturas será implementado aqui'}
                 </p>
               </div>
             </CardContent>
@@ -252,24 +250,24 @@ export default function FinancialPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Notas Fiscais</CardTitle>
+                  <CardTitle>{t('financial.documents') || 'Notas Fiscais'}</CardTitle>
                   <CardDescription>
-                    Documentos fiscais anexados aos projetos
+                    {t('financial.documentsDesc') || 'Documentos fiscais anexados aos projetos'}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Total</p>
+                    <p className="text-sm text-muted-foreground">{t('common.total') || 'Total'}</p>
                     <p className="text-lg font-semibold">
                       R$ {totalInvoiceAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
                   <Select value={selectedProject} onValueChange={setSelectedProject}>
                     <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Filtrar por projeto" />
+                      <SelectValue placeholder={t('financial.filterByProject') || 'Filtrar por projeto'} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todos os Projetos</SelectItem>
+                      <SelectItem value="all">{t('financial.allProjects') || 'Todos os Projetos'}</SelectItem>
                       {projects.map((project) => (
                         <SelectItem key={project.id} value={project.id}>
                           {project.name}
@@ -294,17 +292,19 @@ export default function FinancialPage() {
         <TabsContent value="expenses">
           <Card>
             <CardHeader>
-              <CardTitle>Controle de Despesas</CardTitle>
+              <CardTitle>{t('financial.expenseControl') || 'Controle de Despesas'}</CardTitle>
               <CardDescription>
-                Registre e categorize todas as despesas do projeto
+                {t('financial.expenseControlDesc') || 'Registre e categorize todas as despesas do projeto'}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-12">
                 <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">Módulo de Despesas</h3>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  {t('financial.expenseModule') || 'Módulo de Despesas'}
+                </h3>
                 <p className="text-muted-foreground">
-                  Sistema de controle de despesas será implementado aqui
+                  {t('financial.expenseModuleDesc') || 'Sistema de controle de despesas será implementado aqui'}
                 </p>
               </div>
             </CardContent>
@@ -314,17 +314,19 @@ export default function FinancialPage() {
         <TabsContent value="reports">
           <Card>
             <CardHeader>
-              <CardTitle>Relatórios Financeiros</CardTitle>
+              <CardTitle>{t('financial.financialReports') || 'Relatórios Financeiros'}</CardTitle>
               <CardDescription>
-                Análises detalhadas de performance financeira
+                {t('financial.financialReportsDesc') || 'Análises detalhadas de performance financeira'}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="text-center py-12">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">Relatórios Avançados</h3>
+                <h3 className="text-lg font-medium text-foreground mb-2">
+                  {t('financial.advancedReports') || 'Relatórios Avançados'}
+                </h3>
                 <p className="text-muted-foreground">
-                  Relatórios detalhados de receitas, despesas e lucros
+                  {t('financial.advancedReportsDesc') || 'Relatórios detalhados de receitas, despesas e lucros'}
                 </p>
               </div>
             </CardContent>
