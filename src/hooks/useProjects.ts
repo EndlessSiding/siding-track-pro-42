@@ -3,11 +3,13 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Project, ProjectChecklistItem } from "@/types/project";
+import { useActivityTracker } from "./useActivities";
 
 export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { trackProjectCreated, trackProjectUpdated, trackProjectProgress, trackChecklistUpdated } = useActivityTracker();
 
   const calculateProgressFromChecklist = (checklist: ProjectChecklistItem[]): number => {
     if (!checklist || checklist.length === 0) return 0;
@@ -106,6 +108,13 @@ export const useProjects = () => {
 
       setProjects(prev => [newProject, ...prev]);
 
+      // Track activity
+      try {
+        await trackProjectCreated(newProject.name, newProject.client, newProject.id);
+      } catch (activityError) {
+        console.error('Error tracking project creation:', activityError);
+      }
+
       toast({
         title: "Sucesso",
         description: "Projeto adicionado com sucesso",
@@ -118,10 +127,13 @@ export const useProjects = () => {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, trackProjectCreated]);
 
   const updateProject = useCallback(async (id: string, projectData: Partial<Project>) => {
     try {
+      // Get the current project to compare changes
+      const currentProject = projects.find(p => p.id === id);
+      
       const updateData: any = {};
       if (projectData.name !== undefined) updateData.name = projectData.name;
       if (projectData.client !== undefined) updateData.client_name = projectData.client;
@@ -154,6 +166,32 @@ export const useProjects = () => {
         project.id === id ? { ...project, ...projectData } : project
       ));
 
+      // Track activities based on what changed
+      try {
+        if (currentProject) {
+          const updatedProject = { ...currentProject, ...projectData };
+          
+          // Track progress change if it changed significantly (more than 5%)
+          if (projectData.progress !== undefined && Math.abs(projectData.progress - (currentProject.progress || 0)) >= 5) {
+            await trackProjectProgress(updatedProject.name, projectData.progress, updatedProject.id);
+          }
+          
+          // Track checklist update if checklist was modified
+          if (projectData.checklist && JSON.stringify(projectData.checklist) !== JSON.stringify(currentProject.checklist)) {
+            const completedItems = projectData.checklist.filter(item => item.completed).length;
+            await trackChecklistUpdated(updatedProject.name, completedItems, projectData.checklist.length, updatedProject.id);
+          }
+          
+          // Track general project update for other changes
+          const otherFields = Object.keys(projectData).filter(key => key !== 'checklist' && key !== 'progress');
+          if (otherFields.length > 0) {
+            await trackProjectUpdated(updatedProject.name, updatedProject.id);
+          }
+        }
+      } catch (activityError) {
+        console.error('Error tracking project update:', activityError);
+      }
+
       toast({
         title: "Sucesso",
         description: "Projeto atualizado com sucesso",
@@ -166,7 +204,7 @@ export const useProjects = () => {
         variant: "destructive",
       });
     }
-  }, [toast]);
+  }, [toast, projects, trackProjectUpdated, trackProjectProgress, trackChecklistUpdated]);
 
   const deleteProject = useCallback(async (id: string) => {
     try {

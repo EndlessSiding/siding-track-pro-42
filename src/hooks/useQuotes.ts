@@ -3,11 +3,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Quote } from "@/types/financial";
+import { useActivityTracker } from "./useActivities";
 
 export const useQuotes = () => {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { trackQuoteCreated } = useActivityTracker();
 
   const fetchQuotes = async () => {
     try {
@@ -73,6 +75,13 @@ export const useQuotes = () => {
       };
 
       setQuotes(prev => [newQuote, ...prev]);
+
+      // Track activity
+      try {
+        await trackQuoteCreated(newQuote.projectName, newQuote.totalAmount, newQuote.clientId);
+      } catch (activityError) {
+        console.error('Error tracking quote creation:', activityError);
+      }
 
       toast({
         title: "Sucesso",

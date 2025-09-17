@@ -3,11 +3,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Client } from "@/types/client";
+import { useActivityTracker } from "./useActivities";
 
 export const useClients = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { trackClientCreated } = useActivityTracker();
 
   const fetchClients = async () => {
     try {
@@ -80,6 +82,13 @@ export const useClients = () => {
       };
 
       setClients(prev => [newClient, ...prev]);
+      
+      // Track activity
+      try {
+        await trackClientCreated(newClient.name, newClient.id);
+      } catch (activityError) {
+        console.error('Error tracking client creation:', activityError);
+      }
       
       toast({
         title: "Sucesso",
