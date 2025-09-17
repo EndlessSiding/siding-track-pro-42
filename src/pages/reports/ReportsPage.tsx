@@ -282,7 +282,7 @@ export default function ReportsPage() {
                       <CardDescription>{report.description}</CardDescription>
                     </div>
                     <Badge variant={report.status === "updated" ? "default" : "secondary"}>
-                      {report.status === "updated" ? "Atualizado" : "Desatualizado"}
+                      {report.status === "updated" ? "Updated" : "Outdated"}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -290,16 +290,16 @@ export default function ReportsPage() {
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
-                      <span>Última atualização: {new Date(report.lastGenerated).toLocaleDateString('pt-BR')}</span>
+                      <span>Last updated: {new Date(report.lastGenerated).toLocaleDateString('en-US')}</span>
                     </div>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" className="gap-2">
                         <Eye className="h-4 w-4" />
-                        Visualizar
+                        View
                       </Button>
                       <Button variant="outline" size="sm" className="gap-2">
                         <Download className="h-4 w-4" />
-                        Baixar PDF
+                        Download PDF
                       </Button>
                     </div>
                   </div>

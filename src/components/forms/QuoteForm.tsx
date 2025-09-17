@@ -248,7 +248,7 @@ export function QuoteForm({
             <div className="col-span-2">
               <Label>{t('common.total')}</Label>
               <Input
-                value={`R$ ${item.total.toFixed(2)}`}
+                value={`$ ${item.total.toFixed(2)}`}
                 readOnly
                 className="bg-muted"
               />
@@ -270,7 +270,7 @@ export function QuoteForm({
 
         <div className="text-right">
           <p className="text-lg font-semibold">
-            {t('quotes.grandTotal')}: R$ {items.reduce((sum, item) => sum + item.total, 0).toFixed(2)}
+            {t('quotes.grandTotal')}: $ {items.reduce((sum, item) => sum + item.total, 0).toFixed(2)}
           </p>
         </div>
       </div>

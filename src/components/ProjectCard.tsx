@@ -77,7 +77,7 @@ const ProjectCard = ({ project, detailed = false }: ProjectCardProps) => {
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 flex-shrink-0" />
-              <span>Prazo: {new Date(project.dueDate).toLocaleDateString('pt-BR')}</span>
+              <span>Due Date: {new Date(project.dueDate).toLocaleDateString('en-US')}</span>
             </div>
           </div>
         )}
@@ -86,7 +86,7 @@ const ProjectCard = ({ project, detailed = false }: ProjectCardProps) => {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Progresso</span>
+            <span className="text-muted-foreground">Progress</span>
             <span className="font-medium">{project.progress}%</span>
           </div>
           <Progress value={project.progress} className="h-2" />
@@ -95,11 +95,11 @@ const ProjectCard = ({ project, detailed = false }: ProjectCardProps) => {
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-muted-foreground">Orçamento</p>
-            <p className="font-medium">R$ {project.budget.toLocaleString('pt-BR')}</p>
+            <p className="font-medium">$ {project.budget.toLocaleString('en-US')}</p>
           </div>
           <div>
             <p className="text-muted-foreground">Gasto</p>
-            <p className="font-medium">R$ {project.spent.toLocaleString('pt-BR')}</p>
+            <p className="font-medium">$ {project.spent.toLocaleString('en-US')}</p>
           </div>
         </div>
 

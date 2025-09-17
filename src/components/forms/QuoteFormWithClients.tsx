@@ -271,7 +271,7 @@ export function QuoteFormWithClients({ onSubmit, onCancel }: QuoteFormWithClient
                       <Badge variant="outline">{item.category}</Badge>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {item.quantity}x R$ {item.unitPrice.toFixed(2)} = R$ {item.total.toFixed(2)}
+                      {item.quantity}x $ {item.unitPrice.toFixed(2)} = $ {item.total.toFixed(2)}
                     </div>
                   </div>
                   <Button
@@ -285,7 +285,7 @@ export function QuoteFormWithClients({ onSubmit, onCancel }: QuoteFormWithClient
                 </div>
               ))}
               <div className="text-right font-bold">
-                Total: R$ {totalAmount.toFixed(2)}
+                Total: $ {totalAmount.toFixed(2)}
               </div>
             </div>
           )}

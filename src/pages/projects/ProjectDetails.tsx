@@ -112,7 +112,7 @@ export default function ProjectDetails() {
                   <div>
                     <p className="text-sm font-medium">{t('projects.startDate')}</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(project.startDate).toLocaleDateString('pt-BR')}
+                      {new Date(project.startDate).toLocaleDateString('en-US')}
                     </p>
                   </div>
                 </div>
@@ -122,7 +122,7 @@ export default function ProjectDetails() {
                   <div>
                     <p className="text-sm font-medium">{t('projects.dueDate')}</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(project.dueDate).toLocaleDateString('pt-BR')}
+                      {new Date(project.dueDate).toLocaleDateString('en-US')}
                     </p>
                   </div>
                 </div>
@@ -175,16 +175,16 @@ export default function ProjectDetails() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm">{t('projects.totalBudget')}</span>
-                  <span className="font-medium">R$ {project.budget.toLocaleString()}</span>
+                  <span className="font-medium">$ {project.budget.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">{t('projects.spentSoFar')}</span>
-                  <span className="font-medium">R$ {project.spent.toLocaleString()}</span>
+                  <span className="font-medium">$ {project.spent.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">{t('projects.remaining')}</span>
                   <span className="font-medium text-green-600">
-                    R$ {(project.budget - project.spent).toLocaleString()}
+                    $ {(project.budget - project.spent).toLocaleString()}
                   </span>
                 </div>
               </div>

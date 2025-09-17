@@ -61,7 +61,7 @@ export default function ClientDetails() {
           <div>
             <h1 className="text-3xl font-bold text-foreground">{client.name}</h1>
             <p className="text-muted-foreground">
-              Cliente desde {new Date(client.createdAt).toLocaleDateString('pt-BR')}
+              Client since {new Date(client.createdAt).toLocaleDateString('en-US')}
             </p>
           </div>
         </div>
@@ -69,7 +69,7 @@ export default function ClientDetails() {
           <Link to={`/clients/${client.id}/edit`}>
             <Button className="gap-2">
               <Edit className="h-4 w-4" />
-              Editar
+              Edit
             </Button>
           </Link>
           <Button variant="destructive" size="icon" onClick={handleDelete}>
@@ -143,7 +143,7 @@ export default function ClientDetails() {
                 <div>
                   <p className="text-sm font-medium">Último Contato</p>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(client.lastContact).toLocaleDateString('pt-BR')}
+                    {new Date(client.lastContact).toLocaleDateString('en-US')}
                   </p>
                 </div>
               )}
@@ -199,7 +199,7 @@ export default function ClientDetails() {
                   </span>
                 </CardTitle>
                 <div className="text-sm text-muted-foreground">
-                  Valor total: R$ {totalInvoiceAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  Total Value: $ {totalInvoiceAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </div>
               </CardHeader>
               <CardContent>
@@ -225,8 +225,8 @@ export default function ClientDetails() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm">Valor Total de Projetos</span>
-                  <span className="font-medium">R$ {client.totalProjectsValue.toLocaleString()}</span>
+                  <span className="text-sm">Total Project Value</span>
+                  <span className="font-medium">$ {client.totalProjectsValue.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">Projetos Ativos</span>
@@ -235,7 +235,7 @@ export default function ClientDetails() {
                 {totalInvoiceAmount > 0 && (
                   <div className="flex justify-between">
                     <span className="text-sm">Notas Fiscais</span>
-                    <span className="font-medium">R$ {totalInvoiceAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    <span className="font-medium">$ {totalInvoiceAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                   </div>
                 )}
               </div>

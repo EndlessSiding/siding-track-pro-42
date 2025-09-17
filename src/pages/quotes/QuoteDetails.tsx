@@ -106,7 +106,7 @@ export default function QuoteDetails() {
                   <div>
                     <p className="text-sm font-medium">Data de Criação</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(quote.createdDate).toLocaleDateString('pt-BR')}
+                      {new Date(quote.createdDate).toLocaleDateString('en-US')}
                     </p>
                   </div>
                 </div>
@@ -116,7 +116,7 @@ export default function QuoteDetails() {
                   <div>
                     <p className="text-sm font-medium">Válido até</p>
                     <p className="text-sm text-muted-foreground">
-                      {new Date(quote.validUntil).toLocaleDateString('pt-BR')}
+                      {new Date(quote.validUntil).toLocaleDateString('en-US')}
                     </p>
                   </div>
                 </div>
@@ -154,10 +154,10 @@ export default function QuoteDetails() {
                         <div>
                           <p className="font-medium">{item.description}</p>
                           <p className="text-sm text-muted-foreground">
-                            {item.quantity} x R$ {item.unitPrice.toLocaleString()}
+                            {item.quantity} x $ {item.unitPrice.toLocaleString()}
                           </p>
                         </div>
-                        <span className="font-medium">R$ {item.total.toLocaleString()}</span>
+                        <span className="font-medium">$ {item.total.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
@@ -173,10 +173,10 @@ export default function QuoteDetails() {
                         <div>
                           <p className="font-medium">{item.description}</p>
                           <p className="text-sm text-muted-foreground">
-                            {item.quantity} x R$ {item.unitPrice.toLocaleString()}
+                            {item.quantity} x $ {item.unitPrice.toLocaleString()}
                           </p>
                         </div>
-                        <span className="font-medium">R$ {item.total.toLocaleString()}</span>
+                        <span className="font-medium">$ {item.total.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
@@ -192,10 +192,10 @@ export default function QuoteDetails() {
                         <div>
                           <p className="font-medium">{item.description}</p>
                           <p className="text-sm text-muted-foreground">
-                            {item.quantity} x R$ {item.unitPrice.toLocaleString()}
+                            {item.quantity} x $ {item.unitPrice.toLocaleString()}
                           </p>
                         </div>
-                        <span className="font-medium">R$ {item.total.toLocaleString()}</span>
+                        <span className="font-medium">$ {item.total.toLocaleString()}</span>
                       </div>
                     ))}
                   </div>
@@ -205,7 +205,7 @@ export default function QuoteDetails() {
               <Separator />
               <div className="flex justify-between items-center text-lg font-bold">
                 <span>Total</span>
-                <span>R$ {quote.totalAmount.toLocaleString()}</span>
+                <span>$ {quote.totalAmount.toLocaleString()}</span>
               </div>
             </CardContent>
           </Card>
@@ -223,23 +223,23 @@ export default function QuoteDetails() {
             <CardContent className="space-y-4">
               <div className="text-center">
                 <p className="text-3xl font-bold text-primary">
-                  R$ {quote.totalAmount.toLocaleString()}
+                  $ {quote.totalAmount.toLocaleString()}
                 </p>
-                <p className="text-sm text-muted-foreground">Valor total do orçamento</p>
+                <p className="text-sm text-muted-foreground">Total quote value</p>
               </div>
               <Separator />
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Materiais</span>
-                  <span>R$ {materialItems.reduce((sum, item) => sum + item.total, 0).toLocaleString()}</span>
+                  <span>$ {materialItems.reduce((sum, item) => sum + item.total, 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Mão de Obra</span>
-                  <span>R$ {laborItems.reduce((sum, item) => sum + item.total, 0).toLocaleString()}</span>
+                  <span>$ {laborItems.reduce((sum, item) => sum + item.total, 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span>Equipamentos</span>
-                  <span>R$ {equipmentItems.reduce((sum, item) => sum + item.total, 0).toLocaleString()}</span>
+                  <span>$ {equipmentItems.reduce((sum, item) => sum + item.total, 0).toLocaleString()}</span>
                 </div>
               </div>
             </CardContent>

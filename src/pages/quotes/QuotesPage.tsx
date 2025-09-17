@@ -133,18 +133,18 @@ export default function QuotesPage() {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2 text-2xl font-bold text-primary">
                   <DollarSign className="h-6 w-6" />
-                  {quote.totalAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  {quote.totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
                 </div>
 
                 <div className="space-y-2 text-sm">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{t('quotes.createdOn')}: {new Date(quote.createdDate).toLocaleDateString('pt-BR')}</span>
+                    <span>{t('quotes.createdOn')}: {new Date(quote.createdDate).toLocaleDateString('en-US')}</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span>{t('quotes.validUntil')}: {new Date(quote.validUntil).toLocaleDateString('pt-BR')}</span>
+                    <span>{t('quotes.validUntil')}: {new Date(quote.validUntil).toLocaleDateString('en-US')}</span>
                   </div>
                 </div>
 
@@ -154,7 +154,7 @@ export default function QuotesPage() {
                     {quote.items.slice(0, 2).map((item, index) => (
                       <div key={index} className="flex justify-between">
                         <span>{item.description}</span>
-                        <span>{item.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                        <span>{item.total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                       </div>
                     ))}
                     {quote.items.length > 2 && (

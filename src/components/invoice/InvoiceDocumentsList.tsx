@@ -72,15 +72,15 @@ export default function InvoiceDocumentsList({
                     </div>
                     
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <p>Enviado em {new Date(document.upload_date).toLocaleDateString('pt-BR')}</p>
+                      <p>Uploaded on {new Date(document.upload_date).toLocaleDateString('en-US')}</p>
                       {document.file_size && (
-                        <p>Tamanho: {(document.file_size / 1024 / 1024).toFixed(2)} MB</p>
+                        <p>Size: {(document.file_size / 1024 / 1024).toFixed(2)} MB</p>
                       )}
-                      {document.vendor && <p>Fornecedor: {document.vendor}</p>}
+                      {document.vendor && <p>Vendor: {document.vendor}</p>}
                       {document.amount && (
-                        <p>Valor: R$ {document.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                        <p>Amount: $ {document.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                       )}
-                      {document.description && <p>Descrição: {document.description}</p>}
+                      {document.description && <p>Description: {document.description}</p>}
                     </div>
                   </div>
                 </div>

@@ -141,7 +141,7 @@ export default function ProjectsPage() {
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="font-medium">Entrega</p>
-                    <p className="text-muted-foreground">{new Date(project.dueDate).toLocaleDateString('pt-BR')}</p>
+                    <p className="text-muted-foreground">{new Date(project.dueDate).toLocaleDateString('en-US')}</p>
                   </div>
                 </div>
               </div>

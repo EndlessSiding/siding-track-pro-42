@@ -55,21 +55,21 @@ export default function FinancialPage() {
   const financialMetrics = [
     {
       title: t('financial.monthlyRevenue') || "Receita Mensal",
-      value: `R$ ${totalInvoiceAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      value: `$ ${totalInvoiceAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
       change: t('financial.fromLastMonth') || "+12% do mês passado",
       icon: DollarSign,
       color: "green" as const,
     },
     {
       title: t('financial.monthlyExpenses') || "Despesas Mensais",
-      value: `R$ ${totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      value: `$ ${totalSpent.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
       change: t('financial.fromLastMonth') || "+5% do mês passado",
       icon: TrendingDown,
       color: "red" as const,
     },
     {
       title: t('financial.netProfit') || "Lucro Líquido",
-      value: `R$ ${totalProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+      value: `$ ${totalProfit.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
       change: t('financial.fromLastMonth') || "+18% do mês passado",
       icon: TrendingUp,
       color: "blue" as const,
@@ -182,9 +182,9 @@ export default function FinancialPage() {
                         <p className="text-sm text-muted-foreground">{invoice.client}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">R$ {invoice.amount.toLocaleString('pt-BR')}</p>
+                        <p className="font-medium">$ {invoice.amount.toLocaleString('en-US')}</p>
                         <p className="text-sm text-muted-foreground">
-                          {t('financial.dueDate') || 'Venc'}: {new Date(invoice.dueDate).toLocaleDateString('pt-BR')}
+                          {t('financial.dueDate') || 'Venc'}: {new Date(invoice.dueDate).toLocaleDateString('en-US')}
                         </p>
                       </div>
                     </div>
@@ -259,7 +259,7 @@ export default function FinancialPage() {
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">{t('common.total') || 'Total'}</p>
                     <p className="text-lg font-semibold">
-                      R$ {totalInvoiceAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      $ {totalInvoiceAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
                   <Select value={selectedProject} onValueChange={setSelectedProject}>

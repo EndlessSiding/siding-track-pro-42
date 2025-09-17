@@ -45,7 +45,7 @@ export default function Dashboard() {
     },
     {
       title: t('dashboard.totalRevenue'),
-      value: `R$ ${totalRevenue.toLocaleString('pt-BR')}`,
+      value: `$ ${totalRevenue.toLocaleString('en-US')}`,
       change: "+15% do mês passado",
       icon: DollarSign,
       color: "purple" as const,

@@ -132,7 +132,7 @@ export default function ClientsPage() {
               {client.lastContact && (
                 <div className="text-sm">
                   <p className="text-muted-foreground">{t('clients.lastContact')}:</p>
-                  <p className="font-medium">{new Date(client.lastContact).toLocaleDateString('pt-BR')}</p>
+                  <p className="font-medium">{new Date(client.lastContact).toLocaleDateString('en-US')}</p>
                 </div>
               )}
 

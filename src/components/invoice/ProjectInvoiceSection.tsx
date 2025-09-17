@@ -35,7 +35,7 @@ export default function ProjectInvoiceSection({ projectId }: ProjectInvoiceSecti
         </div>
         {totalAmount > 0 && (
           <div className="text-sm text-muted-foreground">
-            Valor total: R$ {totalAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            Total Value: $ {totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </div>
         )}
       </CardHeader>
